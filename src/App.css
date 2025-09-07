@@ -1,0 +1,24 @@
+.app {
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  display: flex;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  margin-left: 280px;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .app-content {
+    margin-left: 0;
+    flex: 1;
+  }
+}

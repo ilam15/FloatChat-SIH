@@ -1,0 +1,157 @@
+.navigation {
+  width: 280px;
+  height: 100vh;
+  background: white;
+  border-right: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-header {
+  padding: 0 24px 32px 24px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #6B7280, #9CA3AF);
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.nav-menu {
+  flex: 1;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  color: #6B7280;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-item:hover {
+  background: #F9FAFB;
+  color: #374151;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+  color: #111827;
+  border-right: 3px solid #6B7280;
+}
+
+.nav-item.active .nav-icon {
+  color: #6B7280;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.nav-label {
+  flex: 1;
+}
+
+.nav-footer {
+  padding: 24px 0 0 0;
+  border-top: 1px solid #F3F4F6;
+}
+
+.nav-item.logout {
+  color: #DC2626;
+}
+
+.nav-item.logout:hover {
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .navigation {
+    width: 100%;
+    height: auto;
+    position: relative;
+    flex-direction: row;
+    padding: 16px;
+    border-right: none;
+    border-bottom: 1px solid #E5E7EB;
+  }
+
+  .nav-header {
+    padding: 0;
+    border-bottom: none;
+    margin-right: auto;
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    padding: 0;
+    gap: 8px;
+  }
+
+  .nav-item {
+    padding: 8px 12px;
+    border-radius: 8px;
+    min-width: auto;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-footer {
+    padding: 0;
+    border-top: none;
+  }
+
+  .logo-text {
+    display: none;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
