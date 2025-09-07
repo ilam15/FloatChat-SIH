@@ -1,37 +1,23 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Authentication } from './components/Authentication';
-import { HomePage } from './components/HomePage';
-import { Chatbot } from './components/Chatbot';
-import { Profile } from './components/Profile';
-import { Navigation } from './components/Navigation';
+import { Chatbot } from './components/Chatbot'
+import { HomePage } from './components/HomePage' 
+import { Footer } from './components/Footer';
+import { Header } from './components/Header';
+import {Profile} from './components/Profile';
+import { Comparison } from './components/Comparison';
 import './App.css';
-
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
-  if (!isAuthenticated) {
-    return <Authentication onAuthSuccess={handleAuthSuccess} />;
-  }
-
+  
   return (
-    <Router>
       <div className="app">
-        <Navigation />
-        <div className="app-content">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/chat" element={<Chatbot />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+        <Header/>
+        <main>
+          <HomePage/>
+          <Chatbot/>
+          <Profile/>
+          <Comparison/>
+        </main>
+        <Footer/>
       </div>
-    </Router>
   );
 }
 
