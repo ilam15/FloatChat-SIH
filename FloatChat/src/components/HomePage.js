@@ -56,7 +56,7 @@ const users = [
 
 export const HomePage = () => {
   return (
-  <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen">
+    <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen flex flex-col items-center justify-center">
       {/* Hero Section */}
   <section className="relative overflow-hidden flex flex-col items-center justify-center py-28 px-4 md:px-0">
         <motion.div

@@ -17,5 +17,7 @@ Commit 7: Authentication Updated by Swetha B.
 
 Commit 8: Merged Home page with Chatbot by Jaianish J.
 
-Commit 9:Check Point By Ilamsaravanbalaji Pa.
+Commit 9: Check Point By Ilamsaravanbalaji Pa.
+
+Commit 10: Navigation bar connected by Ilamsaravanbalaji Pa. 
 <!-- Hello Guys update the file according to changes gone with detailed explaination for reference purpose. -->

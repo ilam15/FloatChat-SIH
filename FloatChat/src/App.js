@@ -1,25 +1,30 @@
-import { Chatbot } from './components/Chatbot'
-import { HomePage } from './components/HomePage' 
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HomePage } from './components/HomePage';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
-import {Profile} from './components/Profile';
+import { Profile } from './components/Profile';
 import { Comparison } from './components/Comparison';
-import { Authentication } from './components/Authentication'
+import { Authentication } from './components/Authentication';
+import { Chatbot } from './components/Chatbot';
 import './App.css';
-function App() {
 
+function App() {
   return (
+    <Router>
       <div className="app">
-        <Header/>
-        <main>
-          <HomePage/>
-          <Chatbot/>
-          <Profile/>
-          <Comparison/>
-          <Authentication/>
+        <Header />
+        <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '90vh' }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/chatbot" element={<Chatbot />} />
+            <Route path="/comparison" element={<Comparison />} />
+            <Route path="/signin" element={<Authentication />} />
+            <Route path="/profile" element={<Profile />} />
+          </Routes>
         </main>
-        <Footer/>
+        <Footer />
       </div>
+    </Router>
   );
 }
 
