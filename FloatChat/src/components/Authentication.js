@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ChevronRight, ArrowLeft, Waves, Fish, Compass } from 'lucide-react';
-import './Authentication .css';
+import './Authentication.css';
 
 export const Authentication = () => {
   const [authView, setAuthView] = useState('signin');
@@ -164,21 +164,7 @@ export const Authentication = () => {
                     <h2 className="auth-title">Welcome Back!</h2>
                     <p className="auth-subtitle">Sign in to continue your exploration</p>
                   </div>
-
-                  <div className="social-buttons">
-                    <button className="social-btn google-btn">
-                      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUgOS4yMDQ1NUMxNi41IDguNTY2MzYgMTYuNDQ1NSA3Ljk1MjczIDE2LjM0MDkgNy4zNjM2NEg5VjEwLjg0NUgxMy4yOTU1QzEzLjExNTkgMTEuOTcgMTIuNDc3MyAxMi45MjMyIDExLjQ4NjQgMTMuNTYxNFYxNS42MTk2SDE0LjExMzZDMTUuNjE4MiAxNC4yNTI3IDE2LjUgMTIuMTYzNiAxNi41IDkuMjA0NVoiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTkgMTdDMTEuMjE1OSAxNyAxMy4xMDY4IDE2LjI1NDUgMTQuMTEzNiAxNS4wMTkxTDExLjQ4NjQgMTMuNTYxNEMxMC43ODY0IDE0LjA2MTQgOS44NjgxOCAxNC4zODQxIDguODYzNjQgMTMuMzg0MVE2Ljc1IDEzLjM4NDEgNC45OTA5MSAxMS45NzI3IDQuMzM4NjQgOS45OTU0NUgxLjYxMzY0VjEyLjEzMThDMi42MDkwOSAxNC4xNjU5IDQuNjY4MTggMTUuMTU5MSA5IDE1LjE1OTFWMTdaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGQ9Ik00LjMzODY0IDkuOTk1NDVDNC4xMzE4MiA5LjM5NTQ1IDQuMDIyNzMgOC43NSA0LjAyMjczIDguMDgxODJDNC4wMjI3MyA3LjQxMzY0IDQuMTMxODIgNi43NjgxOCA0LjMzODY0IDYuMTY4MThWNC4wMzQ1NUgxLjYxMzY0QzAuOTIwNDU1IDUuNDM0NTUgMC41IDcuMDAwNDUgMC41IDguNTgyMjdDMC41IDEwLjE2NDEgMC45MjA0NTUgMTEuNzMgMS42MTM2NCAxMy4xM0w0LjMzODY0IDExLjAwVjkuOTk1NDVaIiBmaWxsPSIjRkJCMzU1Ii8+CjxwYXRoIGQ9Ik05IDMuNDA5MDlDMTAuMTkzMiAzLjQwOTA5IDExLjI1NDUgMy43OTA5MSAxMi4xMTM2IDQuNTMxODJMMTQuMTcwNSAyLjQ3NDU1QzEyLjk1NDUgMS4zNTg2NCAxMS4yMTU5IDAuNjkyNzI3IDkgMC42OTI3MjdDNC42NjgxOCAwLjY5MjcyNyAyLjYwOTA5IDIuNTc0NTUgMS42MTM2NCA0LjYwNTQ1TDQuMzM4NjQgNi43NDM2NEM0Ljk5MDkxIDQuNzc5NTUgNi43NSAzLjQwOTA5IDkgMy40MDkwOVoiIGZpbGw9IiNFQTQzMzUiLz4KPC9zdmc+Cg==" alt="Google" className="social-icon" />
-                      Sign in with Google
-                    </button>
-                    <button className="social-btn facebook-btn">
-                      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3IDkuMDZDMTcgNC41NCAxMy4xOSAwLjg2IDguNTUgMS4wMkM0LjMgMS4xNyAxIDQuNzcgMSA5QzEgMTMuMjQgNC4zMSAxNi45IDguNTUgMTdDOS42MSAxNy4wMiAxMC42NCAxNi44MiAxMS41NyAxNi40NVYxMS41SDkuNVY5LjVINy41VjhoMi41VjYuNUM5LjUgNS42NyA5LjgzIDQuNSAxMS41IDQuNUgxM1Y2SDEyQzExLjQ1IDYgMTEgNi40NSAxMSA3VjhIMTNWOUgxMVYxNi40N0MxMC42NCAxNi42MiAxMC4zMiAxNi43NCAxMCAxNi44MkM2LjY5IDE3LjIzIDQgMTQuMjMgNCAxMC41QzQgNi43NyA2Ljc3IDQgMTAuNSA0QzE0LjIzIDQgMTcgNi43NyAxNyAxMC41VjkuMDZaIiBmaWxsPSIjMTg3N0YyIi8+Cjwvc3ZnPgo=" alt="Facebook" className="social-icon" />
-                      Sign in with Facebook
-                    </button>
-                  </div>
-
-                  <div className="divider">
-                    <span className="divider-text">or continue with email</span>
-                  </div>
+                  
 
                   <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
@@ -249,9 +235,22 @@ export const Authentication = () => {
                       {isLoading ? 'Signing in...' : 'Login to your account'}
                       {!isLoading && <ChevronRight size={18} />}
                     </button>
-
+                     
                     {errors.submit && <span className="error-text submit-error">{errors.submit}</span>}
                   </form>
+                   <div className="divider">
+                    <span className="divider-text">or continue with email</span>
+                  </div>
+                    <div className="social-buttons">
+                    <button className="social-btn google-btn">
+                      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUgOS4yMDQ1NUMxNi41IDguNTY2MzYgMTYuNDQ1NSA3Ljk1MjczIDE2LjM0MDkgNy4zNjM2NEg5VjEwLjg0NUgxMy4yOTU1QzEzLjExNTkgMTEuOTcgMTIuNDc3MyAxMi45MjMyIDExLjQ4NjQgMTMuNTYxNFYxNS42MTk2SDE0LjExMzZDMTUuNjE4MiAxNC4yNTI3IDE2LjUgMTIuMTYzNiAxNi41IDkuMjA0NVoiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTkgMTdDMTEuMjE1OSAxNyAxMy4xMDY4IDE2LjI1NDUgMTQuMTEzNiAxNS4wMTkxTDExLjQ4NjQgMTMuNTYxNEMxMC43ODY0IDE0LjA2MTQgOS44NjgxOCAxNC4zODQxIDguODYzNjQgMTMuMzg0MVE2Ljc1IDEzLjM4NDEgNC45OTA5MSAxMS45NzI3IDQuMzM4NjQgOS45OTU0NUgxLjYxMzY0VjEyLjEzMThDMi42MDkwOSAxNC4xNjU5IDQuNjY4MTggMTUuMTU5MSA5IDE1LjE1OTFWMTdaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGQ9Ik00LjMzODY0IDkuOTk1NDVDNC4xMzE4MiA5LjM5NTQ1IDQuMDIyNzMgOC43NSA0LjAyMjczIDguMDgxODJDNC4wMjI3MyA3LjQxMzY0IDQuMTMxODIgNi43NjgxOCA0LjMzODY0IDYuMTY4MThWNC4wMzQ1NUgxLjYxMzY0QzAuOTIwNDU1IDUuNDM0NTUgMC41IDcuMDAwNDUgMC41IDguNTgyMjdDMC41IDEwLjE2NDEgMC45MjA0NTUgMTEuNzMgMS42MTM2NCAxMy4xM0w0LjMzODY0IDExLjAwVjkuOTk1NDVaIiBmaWxsPSIjRkJCMzU1Ii8+CjxwYXRoIGQ9Ik05IDMuNDA5MDlDMTAuMTkzMiAzLjQwOTA5IDExLjI1NDUgMy43OTA5MSAxMi4xMTM2IDQuNTMxODJMMTQuMTcwNSAyLjQ3NDU1QzEyLjk1NDUgMS4zNTg2NCAxMS4yMTU5IDAuNjkyNzI3IDkgMC42OTI3MjdDNC42NjgxOCAwLjY5MjcyNyAyLjYwOTA5IDIuNTc0NTUgMS42MTM2NCA0LjYwNTQ1TDQuMzM4NjQgNi43NDM2NEM0Ljk5MDkxIDQuNzc5NTUgNi43NSAzLjQwOTA5IDkgMy40MDkwOVoiIGZpbGw9IiNFQTQzMzUiLz4KPC9zdmc+Cg==" alt="Google" className="social-icon" />
+                      Sign in with Google
+                    </button>
+                    <button className="social-btn facebook-btn">
+                      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3IDkuMDZDMTcgNC41NCAxMy4xOSAwLjg2IDguNTUgMS4wMkM0LjMgMS4xNyAxIDQuNzcgMSA5QzEgMTMuMjQgNC4zMSAxNi45IDguNTUgMTdDOS42MSAxNy4wMiAxMC42NCAxNi44MiAxMS41NyAxNi40NVYxMS41SDkuNVY5LjVINy41VjhoMi41VjYuNUM5LjUgNS42NyA5LjgzIDQuNSAxMS41IDQuNUgxM1Y2SDEyQzExLjQ1IDYgMTEgNi40NSAxMSA3VjhIMTNWOUgxMVYxNi40N0MxMC42NCAxNi42MiAxMC4zMiAxNi43NCAxMCAxNi44MkM2LjY5IDE3LjIzIDQgMTQuMjMgNCAxMC41QzQgNi43NyA2Ljc3IDQgMTAuNSA0QzE0LjIzIDQgMTcgNi43NyAxNyAxMC41VjkuMDZaIiBmaWxsPSIjMTg3N0YyIi8+Cjwvc3ZnPgo=" alt="Facebook" className="social-icon" />
+                      Sign in with Facebook
+                    </button>
+                  </div>
 
                   <div className="auth-footer">
                     <p className="footer-text">
