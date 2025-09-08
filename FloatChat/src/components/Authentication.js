@@ -7,7 +7,7 @@ export const Authentication = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
-    email: 'swethabe14@gmail.com',
+    email: '',
     password: '',
     confirmPassword: '',
     rememberMe: false
