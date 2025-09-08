@@ -10,15 +10,15 @@ function App() {
 
   return (
       <div className="app">
-        {/*<Header/> */}
+        <Header/>
         <main>
           <HomePage/>
-          {/* <Chatbot/> */}
-          {/* <Profile/> */}
-          {/* <Comparison/> */}
-          {/* <Authentication/> */}
+          <Chatbot/>
+          <Profile/>
+          <Comparison/>
+          <Authentication/>
         </main>
-        {/*<Footer/>*/}
+        <Footer/>
       </div>
   );
 }
