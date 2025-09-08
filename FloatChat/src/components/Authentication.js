@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ChevronRight, ArrowLeft, Waves, Fish, Compass } from 'lucide-react';
-import './Authentication.css';
+import './Authentication .css';
 
 export const Authentication = () => {
   const [authView, setAuthView] = useState('signin');
