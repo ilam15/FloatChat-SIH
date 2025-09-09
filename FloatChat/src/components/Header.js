@@ -152,10 +152,10 @@ export const Header = () => {
             </li>
             <li>
               <Link
-                to="/comparison"
+                to="/analytics"
                 className="block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-gray-700 md:p-0 transition"
               >
-                Comparison
+                AnalyticsFilter
               </Link>
             </li>
           </ul>

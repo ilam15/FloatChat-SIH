@@ -3,7 +3,7 @@ import { HomePage } from './components/HomePage';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Profile } from './components/Profile';
-import { Comparison } from './components/Comparison';
+import { AnalyticsFilter } from './components/AnalyticsFilter';
 import { Authentication } from './components/Authentication';
 import { Chatbot } from './components/Chatbot';
 import './App.css';
@@ -17,7 +17,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/chatbot" element={<Chatbot />} />
-            <Route path="/comparison" element={<Comparison />} />
+            <Route path="/analytics" element={<AnalyticsFilter />} />
             <Route path="/signin" element={<Authentication />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
