@@ -20,4 +20,6 @@ Commit 8: Merged Home page with Chatbot by Jaianish J.
 Commit 9: Check Point By Ilamsaravanbalaji Pa.
 
 Commit 10: Navigation bar connected by Ilamsaravanbalaji Pa. 
+
+Commit 11: AnalyticsFilter page  Added by Sharan Adithiya K
 <!-- Hello Guys update the file according to changes gone with detailed explaination for reference purpose. -->
