@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import oc from "../assets/oc.png";
 
 export const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -26,12 +27,12 @@ export const Header = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <img
-            src="https://flowbite.com/docs/images/logo.svg"
+            src={oc}
             className="h-8"
             alt="FloatChat Logo"
           />
           <span className="self-center text-2xl font-extrabold whitespace-nowrap text-gray-800">
-            FloatChat
+            Samudra
           </span>
         </Link>
 

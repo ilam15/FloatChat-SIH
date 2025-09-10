@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { HomePage } from './components/HomePage';
+import { Homepage } from './components/HomePage';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { Profile } from './components/Profile';
@@ -15,7 +15,7 @@ function App() {
         <Header />
         <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '90vh' }}>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<Homepage />} />
             <Route path="/chatbot" element={<Chatbot />} />
             <Route path="/analytics" element={<AnalyticsFilter />} />
             <Route path="/signin" element={<Authentication />} />
