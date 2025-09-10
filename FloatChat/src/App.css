@@ -1,4 +1,3 @@
-
 .app {
   min-height: 100vh;
   width: 100vw;
@@ -7,17 +6,22 @@
   flex-direction: column;
 }
 
-
 .app-content {
   flex: 1;
-  margin-left: 280px;
+  /* margin-left: 280px; / / Remove this line */
   overflow: hidden;
 }
 
-
 @media (max-width: 768px) {
   .app-content {
-    margin-left: 0;
+    /* margin-left: 0; / / This is no longer needed */
     flex: 1;
   }
+}
+/* Add this to App.css or the relevant CSS file */
+header, footer {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
