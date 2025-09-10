@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import './AnalyticsFilter.css';
 
 // Standalone page: filter by From/To dates and visualize results in an area chart
@@ -9,7 +9,9 @@ export const AnalyticsFilter = () => {
   const [toDate, setToDate] = useState('');
   const categories = ['Temperature', 'Salinity', 'Currents', 'Waves', 'Tides'];
   const [selectedCategories, setSelectedCategories] = useState(new Set(categories));
-  const allChecked = selectedCategories.size === categories.length;
+  const [groupByCategory, setGroupByCategory] = useState(false);
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' | 'desc' 
+  const allChecked = selectedCategories.size === categories.length; 
 
   // Demo dataset: daily message counts over a month
   const dataset = useMemo(() => {
@@ -47,16 +49,57 @@ export const AnalyticsFilter = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    return dataset.filter((row) => {
+    const base = dataset.filter((row) => {
       const t = row.date;
       if (fromDate && t < fromDate) return false;
       if (toDate && t > toDate) return false;
       if (!selectedCategories.has(row.category)) return false;
       return true;
     });
-  }, [dataset, fromDate, toDate, selectedCategories]);
+    const sorted = [...base].sort((a, b) =>
+      sortOrder === 'asc' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)
+    );
+    return sorted;
+  }, [dataset, fromDate, toDate, selectedCategories, sortOrder]);
+
+  // Aggregate data for charting: either by total per day or by category per day
+  const chartData = useMemo(() => {
+    const map = new Map(); // date -> { date, total, [category]: value }
+    for (const row of filtered) {
+      if (!map.has(row.date)) {
+        map.set(row.date, { date: row.date, total: 0 });
+      }
+      const entry = map.get(row.date);
+      entry.total += Number(row.value || 0);
+      entry[row.category] = (entry[row.category] || 0) + Number(row.value || 0);
+    }
+    // Ensure every selected category exists on every date with default 0 so stacked areas render
+    const selectedList = categories.filter((c) => selectedCategories.has(c));
+    for (const entry of map.values()) {
+      for (const c of selectedList) {
+        if (entry[c] == null) entry[c] = 0;
+      }
+    }
+    const arr = Array.from(map.values()).sort((a, b) =>
+      sortOrder === 'asc' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date)
+    );
+    return arr;
+  }, [filtered, sortOrder, categories, selectedCategories]);
 
   const totalValue = useMemo(() => filtered.reduce((sum, r) => sum + Number(r.value || 0), 0), [filtered]);
+
+  const numberFormatter = (n) => {
+    if (n == null || Number.isNaN(n)) return '0';
+    return Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
+  };
+
+  const COLORS = {
+    Temperature: '#ef4444',
+    Salinity: '#10b981',
+    Currents: '#8b5cf6',
+    Waves: '#0ea5e9',
+    Tides: '#f59e0b',
+  };
 
   return (
     <div className="analytics-page">
@@ -84,6 +127,25 @@ export const AnalyticsFilter = () => {
               onChange={(e) => setToDate(e.target.value)}
               min={fromDate || undefined}
             />
+          </div>
+          <div className="filter">
+            <label>View</label>
+            <div className="toggle-row" role="group" aria-label="View mode">
+              <button
+                type="button"
+                className={`btn ${!groupByCategory ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setGroupByCategory(false)}
+              >
+                Total
+              </button>
+              <button
+                type="button"
+                className={`btn ${groupByCategory ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setGroupByCategory(true)}
+              >
+                By category
+              </button>
+            </div>
           </div>
           <div className="categories">
             {(() => {
@@ -128,6 +190,47 @@ export const AnalyticsFilter = () => {
               );
             })}
           </div>
+          <div className="actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setFromDate('');
+                setToDate('');
+                setSelectedCategories(new Set(categories));
+                setGroupByCategory(false);
+                setSortOrder('asc');
+              }}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setSortOrder((s) => (s === 'asc' ? 'desc' : 'asc'))}
+              aria-label="Toggle sort order"
+            >
+              Sort: {sortOrder === 'asc' ? 'Oldest → Newest' : 'Newest → Oldest'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                const header = ['Date', 'Category', 'Value'];
+                const rows = filtered.map((r) => [r.date, r.category, r.value]);
+                const csv = [header, ...rows].map((arr) => arr.join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'analytics.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Export CSV
+            </button>
+          </div>
           <div className="summary">
             <div className="summary-item">
               <div className="summary-label">Days</div>
@@ -135,23 +238,36 @@ export const AnalyticsFilter = () => {
             </div>
             <div className="summary-item">
               <div className="summary-label">Total value</div>
-              <div className="summary-value">{totalValue}</div>
+              <div className="summary-value">{numberFormatter(totalValue)}</div>
             </div>
             <div className="summary-item">
               <div className="summary-label">Avg/day</div>
-              <div className="summary-value">{filtered.length ? Math.round(totalValue / filtered.length) : 0}</div>
+              <div className="summary-value">{filtered.length ? numberFormatter(totalValue / filtered.length) : 0}</div>
             </div>
           </div>
         </div>
 
         <div className="chart-wrapper">
           <ResponsiveContainer width="100%" height={320}>
-            <AreaChart data={filtered} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="date" stroke="#6B7280" />
               <YAxis stroke="#6B7280" />
-              <Tooltip contentStyle={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 8 }} />
-              <Area type="monotone" dataKey="value" stroke="#0EA5E9" fill="#E0F2FE" strokeWidth={2} />
+              <Tooltip
+                formatter={(value, name) => [numberFormatter(value), name === 'total' ? 'Total' : name]}
+                labelFormatter={(label) => `Date: ${label}`}
+                contentStyle={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 8 }}
+              />
+              {groupByCategory ? (
+                <>
+                  {categories.filter((c) => selectedCategories.has(c)).map((c) => (
+                    <Area key={c} type="monotone" dataKey={c} stackId="1" stroke={COLORS[c]} fill={COLORS[c] + '33'} strokeWidth={2} />
+                  ))}
+                  <Legend />
+                </>
+              ) : (
+                <Area type="monotone" dataKey="total" stroke="#0EA5E9" fill="#E0F2FE" strokeWidth={2} />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -170,7 +286,7 @@ export const AnalyticsFilter = () => {
                 <tr key={`${row.date}-${row.category}`}>
                   <td>{row.date}</td>
                   <td>{row.category}</td>
-                  <td>{row.value}</td>
+                  <td>{numberFormatter(row.value)}</td>
                 </tr>
               ))}
               {filtered.length === 0 && (
