@@ -201,19 +201,32 @@ export const Chatbot = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botResponse = generateBotResponse(inputValue);
+    try {
+      const response = await fetch('http://localhost:5000/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: inputValue
+        })
+      });
+      const data = await response.json();
       const botMessage = {
         id: Date.now() + 1,
-        text: botResponse,
+        text: data.reply || 'No response from server.',
         sender: 'bot',
         timestamp: new Date()
       };
-
       setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        text: 'Error connecting to backend.',
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 2000); // Random delay between 1-3 seconds
+    }
   };
 
   const generateQuickActionResponse = (action) => {
@@ -324,7 +337,7 @@ export const Chatbot = () => {
 
       {/* Main Chat Area */}
       <div className="main-chat-area">
-        {/* Header */}
+        Header
         <div className="chatgpt-header">
           <div className="header-left">
             <button className="sidebar-toggle" onClick={toggleSidebar}>
