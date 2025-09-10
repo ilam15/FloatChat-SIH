@@ -492,7 +492,7 @@ export const Homepage = () => {
             <p className="text-blue-300 text-lg">© {new Date().getFullYear()} FloatChat. All rights reserved.</p>
             <p className="text-blue-400 mt-2 text-lg">Specializing exclusively in Indian Ocean data</p>
           </div>
-        </div>
+         </div>
       </footer>
     </div>
   );
