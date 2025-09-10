@@ -266,13 +266,16 @@
 
 /* Enhanced Header */
 .chatgpt-header {
-  padding: 16px 24px;
+  padding: 16px 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
   min-height: 60px;
   transition: all 0.3s ease;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .light-theme .chatgpt-header {
@@ -411,16 +414,27 @@
   color: #e5e5e5;
 }
 
+/* Main Chat Area */
+.main-chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  position: relative;
+  align-items: center;
+}
+
 /* Messages Area - ChatGPT Style */
 .chatgpt-messages {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  max-width: 768px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  padding: 24px;
+  padding: 24px 80px;
   transition: all 0.3s ease;
 }
 
@@ -761,10 +775,13 @@
 
 /* Input Area - ChatGPT Style */
 .chatgpt-input {
-  padding: 24px;
+  padding: 24px 80px;
   position: sticky;
   bottom: 0;
   transition: all 0.3s ease;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .light-theme .chatgpt-input {
@@ -945,12 +962,16 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .chatgpt-messages {
-    padding: 16px;
+    padding: 16px 32px;
     max-width: 100%;
   }
 
   .chatgpt-input {
-    padding: 16px;
+    padding: 16px 32px;
+  }
+
+  .chatgpt-header {
+    padding: 12px 32px;
   }
 
   .chatgpt-input-field {
@@ -970,7 +991,7 @@
   }
 
   .chatgpt-header {
-    padding: 12px 16px;
+    padding: 12px 24px;
     min-height: 56px;
   }
 
@@ -1050,11 +1071,15 @@
 
 @media (max-width: 320px) {
   .chatgpt-messages {
-    padding: 12px;
+    padding: 12px 20px;
   }
 
   .chatgpt-input {
-    padding: 12px;
+    padding: 12px 20px;
+  }
+
+  .chatgpt-header {
+    padding: 12px 20px;
   }
 
   .message-bubble {
