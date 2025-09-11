@@ -337,7 +337,6 @@ export const Chatbot = () => {
 
       {/* Main Chat Area */}
       <div className="main-chat-area">
-        Header
         <div className="chatgpt-header">
           <div className="header-left">
             <button className="sidebar-toggle" onClick={toggleSidebar}>
