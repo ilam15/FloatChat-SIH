@@ -324,7 +324,7 @@ export const Chatbot = () => {
           ))}
         </div>
 
-        <div className="sidebar-footer">
+        {/* <div className="sidebar-footer">
           <div className="user-profile">
             <div className="user-avatar">U</div>
             <div className="user-info">
@@ -332,7 +332,7 @@ export const Chatbot = () => {
               <div className="user-plan">Active User</div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Main Chat Area */}
