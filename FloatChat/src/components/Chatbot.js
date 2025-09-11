@@ -290,6 +290,11 @@ export const Chatbot = () => {
             </svg>
             New Chat
           </button>
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
 
         <div className="chat-history">
@@ -324,40 +329,6 @@ export const Chatbot = () => {
 
       {/* Main Chat Area */}
       <div className="main-chat-area">
-        {/* Header */}
-        <div className="chatgpt-header">
-          <div className="header-left">
-            <button className="sidebar-toggle" onClick={toggleSidebar}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
-            <div className="header-content">
-              <h3>FloatChat AI Assistant</h3>
-              <div className="chatgpt-header-subtitle">
-                Intelligent Conversational AI
-              </div>
-            </div>
-          </div>
-          <div className="header-right">
-            <button className="header-btn" onClick={() => fileInputRef.current?.click()}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M21.44 11.05L12.25 20.24C11.1242 21.3658 9.59722 22.0001 8.005 22.0001C6.41278 22.0001 4.88583 21.3658 3.76 20.24C2.63417 19.1142 1.99994 17.5872 1.99994 15.995C1.99994 14.4028 2.63417 12.8758 3.76 11.75L12.95 2.56C13.7006 1.80944 14.7186 1.38787 15.78 1.38787C16.8414 1.38787 17.8594 1.80944 18.61 2.56C19.3606 3.31056 19.7821 4.32856 19.7821 5.39C19.7821 6.45144 19.3606 7.46944 18.61 8.22L9.41 17.41C9.03494 17.7851 8.52556 17.9972 8 17.9972C7.47444 17.9972 6.96506 17.7851 6.59 17.41C6.21494 17.0349 6.00284 16.5256 6.00284 16C6.00284 15.4744 6.21494 14.9651 6.59 14.59L15.07 6.12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            <button className="theme-toggle" onClick={toggleTheme}>
-              {isDarkMode ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5M17.6859 17.69L18.5 18.5M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
 
         {/* Messages */}
         <div className="chatgpt-messages">
@@ -500,6 +471,19 @@ export const Chatbot = () => {
         style={{ display: 'none' }}
         accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
       />
+
+      {/* Floating Theme Toggle */}
+      <button className="floating-theme-toggle" onClick={toggleTheme}>
+        {isDarkMode ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3V4M12 20V21M4 12H3M6.31412 6.31412L5.5 5.5M17.6859 6.31412L18.5 5.5M6.31412 17.69L5.5 18.5M17.6859 17.69L18.5 18.5M21 12H20M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </button>
     </div>
   );
 };
