@@ -1,11 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider } from './components/AuthContext';
 import { Homepage } from './components/HomePage';
 import { Footer } from './components/Footer';
-import { Header } from './components/Header';
-import { Profile } from './components/Profile';
+import {Header} from './components/Header';
 import { AnalyticsFilter } from './components/AnalyticsFilter';
 import { Authentication } from './components/Authentication';
 import { Chatbot } from './components/Chatbot';
+import { Settings } from './components/Settings';
+ // Import the Settings component
 import './App.css';
 
 function AppContent() {
@@ -20,19 +22,23 @@ function AppContent() {
           <Route path="/chatbot" element={<Chatbot />} />
           <Route path="/analytics" element={<AnalyticsFilter />} />
           <Route path="/signin" element={<Authentication />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/signup" element={<Authentication />} />
+          
+          <Route path="/settings" element={<Settings />} /> {/* Add Settings route */}
         </Routes>
       </main>
-      {location.pathname !== '/' && <Footer />}
+      {location.pathname !== '/' && location.pathname !== '/chatbot' && <Footer />}
     </div>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 

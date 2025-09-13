@@ -1,5 +1,6 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ChevronRight, ArrowLeft, Waves, Fish, Compass } from 'lucide-react';
+import { useAuth } from './AuthContext'; // Import the auth context
 import './Authentication.css';
 
 export const Authentication = () => {
@@ -14,6 +15,9 @@ export const Authentication = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { login } = useAuth(); // Get login function from context
+
   useEffect(() => {
     const savedData = localStorage.getItem('oceanExplorerAuthData');
     const savedView = localStorage.getItem('oceanExplorerAuthView');
@@ -57,7 +61,6 @@ export const Authentication = () => {
     localStorage.setItem('oceanExplorerAuthView', authView);
   }, [authView]);
 
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -100,22 +103,51 @@ export const Authentication = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // In your Authentication component
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm()) return;
+  
+  setIsLoading(true);
+  
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
-    if (!validateForm()) return;
+    // Create user data object with a unique ID
+    const userId = Date.now().toString(); // Simple ID generation
+    const userData = {
+      id: userId,
+      name: formData.fullName || formData.email.split('@')[0],
+      email: formData.email,
+      phone: '', // Default empty phone
+      username: formData.email.split('@')[0], // Add username
+      preferences: {
+        theme: "light",
+        notifications: true,
+        language: "english"
+      }
+    };
     
-    setIsLoading(true);
+    // Save user details to localStorage
+    localStorage.setItem(`userDetails_${userId}`, JSON.stringify(userData));
     
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      alert(authView === 'signin' ? 'Successfully signed in!' : 'Account created successfully!');
-    } catch (error) {
-      setErrors({ submit: `${authView === 'signin' ? 'Sign in' : 'Sign up'} failed. Please try again.` });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Save current user to localStorage for auth persistence
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+    
+    // Call the login function from context to update global state
+    login(userData);
+    
+    alert(authView === 'signin' ? 'Successfully signed in!' : 'Account created successfully!');
+    
+    // Redirect to home page
+    window.location.href = '/';
+  } catch (error) {
+    setErrors({ submit: `${authView === 'signin' ? 'Sign in' : 'Sign up'} failed. Please try again.` });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="ocean-auth-container">
