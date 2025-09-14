@@ -1,33 +1,45 @@
 // AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getUserById } from './dbService';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is logged in on component mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
+    // Check if user is logged in on app load
+    const checkAuthStatus = async () => {
       try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-        setIsLoggedIn(true);
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          
+          // Verify user still exists in database
+          const dbUser = await getUserById(userData.id);
+          if (dbUser) {
+            setUser(dbUser);
+            setIsLoggedIn(true);
+          } else {
+            // User no longer exists in database
+            localStorage.removeItem('currentUser');
+          }
+        }
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error('Error checking auth status:', error);
         localStorage.removeItem('currentUser');
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    checkAuthStatus();
   }, []);
 
   const login = (userData) => {
@@ -42,25 +54,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('currentUser');
   };
 
-  const updateUser = (newDetails) => {
-    const updatedUser = { ...user, ...newDetails };
+  const updateUser = (updatedData) => {
+    const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-    
-    // Also update the user details in localStorage
-    if (user && user.id) {
-      const userDetails = localStorage.getItem(`userDetails_${user.id}`);
-      if (userDetails) {
-        const parsedDetails = JSON.parse(userDetails);
-        const updatedDetails = { ...parsedDetails, ...newDetails };
-        localStorage.setItem(`userDetails_${user.id}`, JSON.stringify(updatedDetails));
-      }
-    }
   };
 
   const value = {
     user,
     isLoggedIn,
+    isLoading,
     login,
     logout,
     updateUser

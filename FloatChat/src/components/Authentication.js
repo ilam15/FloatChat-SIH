@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, ChevronRight, ArrowLeft, Waves, Fish, Compass } from 'lucide-react';
-import { useAuth } from './AuthContext'; // Import the auth context
+import { Eye, EyeOff, Mail, Lock, User, ChevronRight, Waves, Fish, Compass } from 'lucide-react';
+import { useAuth } from './AuthContext';
+import { createUser, getUserByEmail } from './dbService'; // Import database functions
 import './Authentication.css';
 
 export const Authentication = () => {
-  const [authView, setAuthView] = useState('signin');
+  const [authView, setAuthView] = useState('signup'); // Default to signup view
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -16,7 +17,7 @@ export const Authentication = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth(); // Get login function from context
+  const { login } = useAuth();
 
   useEffect(() => {
     const savedData = localStorage.getItem('oceanExplorerAuthData');
@@ -28,13 +29,11 @@ export const Authentication = () => {
         setFormData(prevData => ({
           ...prevData,
           ...parsedData,
-          // Don't load password and confirmPassword for security
           password: '',
           confirmPassword: ''
         }));
       } catch (error) {
         console.error('Error parsing saved data:', error);
-        // Clear invalid data from localStorage
         localStorage.removeItem('oceanExplorerAuthData');
       }
     }
@@ -44,19 +43,16 @@ export const Authentication = () => {
     }
   }, []);
 
-  // Save data to localStorage when formData changes
   useEffect(() => {
     const dataToSave = {
       fullName: formData.fullName,
       email: formData.email,
       rememberMe: formData.rememberMe
-      // Don't save passwords to localStorage for security
     };
     
     localStorage.setItem('oceanExplorerAuthData', JSON.stringify(dataToSave));
   }, [formData.fullName, formData.email, formData.rememberMe]);
 
-  // Save current view to localStorage
   useEffect(() => {
     localStorage.setItem('oceanExplorerAuthView', authView);
   }, [authView]);
@@ -76,7 +72,7 @@ export const Authentication = () => {
     }
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors = {};
     
     if (authView === 'signup' && !formData.fullName.trim()) {
@@ -99,55 +95,101 @@ export const Authentication = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
+    // Check if user exists for signin
+    if (authView === 'signin') {
+      try {
+        const existingUser = await getUserByEmail(formData.email);
+        if (!existingUser) {
+          newErrors.email = 'No account found with this email. Please sign up first.';
+        }
+      } catch (error) {
+        newErrors.submit = 'Error checking user. Please try again.';
+      }
+    }
+    
+    // Check if email is already registered for signup
+    if (authView === 'signup') {
+      try {
+        const existingUser = await getUserByEmail(formData.email);
+        if (existingUser) {
+          newErrors.email = 'Email is already registered. Please sign in instead.';
+        }
+      } catch (error) {
+        newErrors.submit = 'Error checking user. Please try again.';
+      }
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // In your Authentication component
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!validateForm()) return;
-  
-  setIsLoading(true);
-  
-  try {
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    // Create user data object with a unique ID
-    const userId = Date.now().toString(); // Simple ID generation
-    const userData = {
-      id: userId,
-      name: formData.fullName || formData.email.split('@')[0],
-      email: formData.email,
-      phone: '', // Default empty phone
-      username: formData.email.split('@')[0], // Add username
-      preferences: {
-        theme: "light",
-        notifications: true,
-        language: "english"
+    if (!await validateForm()) return;
+    
+    setIsLoading(true);
+    
+    try {
+      if (authView === 'signup') {
+        // Create new user in database
+        const userData = {
+          name: formData.fullName,
+          email: formData.email,
+          phone: '', // Default empty phone
+          username: formData.email.split('@')[0],
+          userType: "general",
+          accountType: "Basic",
+          preferences: {
+            theme: "light",
+            notifications: true,
+            language: "english"
+          }
+        };
+        
+        const newUser = await createUser(userData);
+        
+        if (!newUser) {
+          throw new Error('Failed to create user');
+        }
+        
+        // Save current user to localStorage for auth persistence
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
+        
+        // Call the login function from context to update global state
+        login(newUser);
+        
+        alert('Account created successfully!');
+        window.location.href = '/';
+      } else {
+        // Sign in existing user
+        const user = await getUserByEmail(formData.email);
+        
+        if (!user) {
+          throw new Error('User not found');
+        }
+        
+        // In a real app, you would verify the password against a hashed version
+        // For this demo, we'll just check if password is not empty
+        if (!formData.password) {
+          throw new Error('Invalid password');
+        }
+        
+        // Save current user to localStorage for auth persistence
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
+        // Call the login function from context to update global state
+        login(user);
+        
+        alert('Successfully signed in!');
+        window.location.href = '/';
       }
-    };
-    
-    // Save user details to localStorage
-    localStorage.setItem(`userDetails_${userId}`, JSON.stringify(userData));
-    
-    // Save current user to localStorage for auth persistence
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    
-    // Call the login function from context to update global state
-    login(userData);
-    
-    alert(authView === 'signin' ? 'Successfully signed in!' : 'Account created successfully!');
-    
-    // Redirect to home page
-    window.location.href = '/';
-  } catch (error) {
-    setErrors({ submit: `${authView === 'signin' ? 'Sign in' : 'Sign up'} failed. Please try again.` });
-  } finally {
-    setIsLoading(false);
-  }
-};
+    } catch (error) {
+      setErrors({ submit: `${authView === 'signin' ? 'Sign in' : 'Sign up'} failed. ${error.message}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="ocean-auth-container">
@@ -286,12 +328,12 @@ const handleSubmit = async (e) => {
 
                   <div className="auth-footer">
                     <p className="footer-text">
-                      Don't have an account? 
+                      New to OceanExplorer? 
                       <button 
                         onClick={() => setAuthView('signup')} 
                         className="auth-link"
                       >
-                        Sign up
+                        Create an account
                       </button>
                     </p>
                   </div>
