@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ChevronRight, Waves, Fish, Compass } from 'lucide-react';
 import { useAuth } from './AuthContext';
-import { createUser, getUserByEmail } from './dbService'; // Import database functions
+import { createUser, getUserByEmail } from './dbService';
 import './Authentication.css';
 
 export const Authentication = () => {
-  const [authView, setAuthView] = useState('signup'); // Default to signup view
+  const [authView, setAuthView] = useState('signup');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -16,8 +16,9 @@ export const Authentication = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
-  const { login } = useAuth();
+  const { login, currentUser } = useAuth();
 
   useEffect(() => {
     const savedData = localStorage.getItem('oceanExplorerAuthData');
@@ -69,6 +70,11 @@ export const Authentication = () => {
         ...errors,
         [name]: ''
       });
+    }
+    
+    // Clear success message when user starts typing
+    if (successMessage) {
+      setSuccessMessage('');
     }
   };
 
@@ -159,8 +165,13 @@ export const Authentication = () => {
         // Call the login function from context to update global state
         login(newUser);
         
-        alert('Account created successfully!');
-        window.location.href = '/';
+        // Set success message instead of alert
+        setSuccessMessage('Account created successfully! Redirecting...');
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
       } else {
         // Sign in existing user
         const user = await getUserByEmail(formData.email);
@@ -181,8 +192,13 @@ export const Authentication = () => {
         // Call the login function from context to update global state
         login(user);
         
-        alert('Successfully signed in!');
-        window.location.href = '/';
+        // Set success message instead of alert
+        setSuccessMessage('Successfully signed in!');
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
       }
     } catch (error) {
       setErrors({ submit: `${authView === 'signin' ? 'Sign in' : 'Sign up'} failed. ${error.message}` });
@@ -232,6 +248,12 @@ export const Authentication = () => {
           {/* Right Panel with Form */}
           <div className="right-panel">
             <div className="auth-card">
+              {successMessage && (
+                <div className="success-message">
+                  {successMessage}
+                </div>
+              )}
+              
               {authView === 'signin' && (
                 <>
                   <div className="auth-header">
@@ -317,7 +339,7 @@ export const Authentication = () => {
                   </div>
                     <div className="social-buttons">
                     <button className="social-btn google-btn">
-                      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUgOS4yMDQ1NUMxNi41IDguNTY2MzYgMTYuNDQ1NSA3Ljk1MjczIDE2LjM0MDkgNy4zNjM2NEg5VjEwLjg0NUgxMy4yOTU1QzEzLjExNTkgMTEuOTcgMTIuNDc3MyAxMi45MjMyIDExLjQ4NjQgMTMuNTYxNFYxNS42MTk2SDE0LjExMzZDMTUuNjE4MiAxNC4yNTI3IDE2LjUgMTIuMTYzNiAxNi41IDkuMjA0NVoiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTkgMTdDMTEuMjE1OSAxNyAxMy4xMDY4IDE2LjI1NDUgMTQuMTEzNiAxNS4wMTkxTDExLjQ4NjQgMTMuNTYxNEMxMC43ODY0IDE0LjA2MTQgOS44NjgxOCAxNC4zODQxIDguODYzNjQgMTMuMzg0MVE2Ljc1IDEzLjM4NDEgNC45OTA5MSAxMS45NzI3IDQuMzM4NjQgOS45OTU0NUgxLjYxMzY0VjEyLjEzMThDMi42MDkwOSAxNC4xNjU5IDQuNjY4MTggMTUuMTU5MSA5IDE1LjE1OTFWMTdaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGQ9Ik00LjMzODY0IDkuOTk1NDVDNC4xMzE4MiA5LjM5NTQ1IDQuMDIyNzMgOC43NSA0LjAyMjczIDguMDgxODJDNC4wMjI3MyA3LjQxMzY0IDQuMTMxODIgNi43NjgxOCA0LjMzODY0IDYuMTY4MThWNC4wMzQ1NUgxLjYxMzY0QzAuOTIwNDU1IDUuNDM0NTUgMC41IDcuMDAwNDUgMC41IDguNTgyMjdDMC41IDEwLjE2NDEgMC45MjA0NTUgMTEuNzMgMS42MTM2NCAxMy4xM0w0LjMzODY0IDExLjAwVjkuOTk1NDVaIiBmaWxsPSIjRkJCMzU1Ii8+CjxwYXRoIGQ9Ik05IDMuNDA5MDlDMTAuMTkzMiAzLjQwOTA5IDExLjI1NDUgMy43OTA5MSAxMi4xMTM2IDQuNTMxODJMMTQuMTcwNSAyLjQ3NDU1QzEyLjk1NDUgMS4zNTg2NCAxMS4yMTU5IDAuNjkyNzI3IDkgMC42OTI3MjdDNC42NjgxOCAwLjY5MjcyNyAyLjYwOTA5IDIuNTc0NTUgMS42MTM2NCA0LjYwNTQ1TDQuMzM4NjQgNi43NDM2NEM0Ljk5MDkxIDQuNzc5NTUgNi43NSAzLjQwOTA5IDkgMy40MDkwOVoiIGZpbGw9IiNFQTQzMzUiLz4KPC9zdmc+Cg==" alt="Google" className="social-icon" />
+                      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUgOS4yMDQ1NUMxNi41IDguNTY2MzYgMTYuNDQ1NSA3Ljk1MjczIDE2LjM0MDkgNy4zNjM2NEg5VjEwLjg0NUgxMy4yOTU1QzEzLjExNTkgMTEuOTcgMTIuNDc3MyAxMi45MjMyIDExLjQ4NjQgMTMuNTYxNFYxNS42MTk2SDE0LjExMzZDMTUuNjE4MiAxNC4yNTI3IDE2LjUgMTIuMTYzNiAxNi41IDkuMjA0NVoiIGZpbGw9IiM0Mjg1RjQiLz4KPHBhdGggZD0iTTkgMTdDMTEuMjE1OSAxNyAxMy4xMDY4IDE2LjI1NDUgMTQuMTEzNiAxNS4wMTkxTDExLjQ4NjQgMTMuNTYxNEMxMC43ODY0IDE0LjA2MTQgOS44NjgxOCAxNC4zODQxIDguODYzNjQgMTMuMzg0MVE2Ljc1IDEzLjM4NDEgNC45OTA5MSAxMS45NzI3IDQuMzM4NjQgOS45OTU0NUgxLjYxMzY0VjEyLjEzMThDMi42MDkwOSAxNC4xNjU5IDQuNjY4MTggMTUuMTU5MSA5IDE1LjE1OTFWMTdaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGQ9Ik00LjMzODY0IDkuOTk1NDVDNC4xMzE4MiA5LjM5NTQ1IDQuMDIyNzMgOC43NSA0LjAyMjczIDguMDgxODJDNC4wMjI3MyA3LjQxMzY0IDQuMTMxODIgNi43NjgxOCA0LjMzODY0IDYuMTY4MThWNC4wMzQ1NUgxLjYxMzY0QzAuOTIwNDU1IDUuNDM0NTUgMC41IDcuMDAwNDUgMC41IDguNTgyMjdDMC41IDEwLjE2NDEgMC45MjA0NTUgMTEuNzMgMS42MTM2NCAxMy4xM0w0LjMzODY0IDExLjAwVjkuOTk1NDVaIiBmaWxsPSIjRkJCMzU1Ii8+CjxwYXRoIGQ9Ik05IDMuNDA5MDlDMTAuMTkzMiAzLjQwOTA5IDExLjI1NDUgMy43OTA5MSAxMi4xMTM2IDQuNTMxODJMMTQuMTcwNSAyLjQ3NDU1QzEyLjk1NDUgMS4zNTg2NCAxMS4yMTU5IDAuNjkyNzI3IDkgMC42OTI3MjdDNC42NjgxOCAwLjY5MjcyNyAyLjYwOTA5IDIuNTc0NTUgMS42MTM2NCA0LjYwNTQ1TDQuMzM4NjQgNi43NDM2NEM0Ljk5MDkxIDQuNzc5NTUgNi43NSAzLjQwOTA5IDkgMy40MDkwOVoiIGZpbGw9IiVFQTQzMzUiLz4KPC9zdmc+Cg==" alt="Google" className="social-icon" />
                       Sign in with Google
                     </button>
                     <button className="social-btn facebook-btn">
