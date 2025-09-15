@@ -618,11 +618,15 @@
 
 .message-bubble {
   max-width: 80%;
+  min-width: fit-content;
   padding: 12px 16px;
   border-radius: 18px;
   font-size: 15px;
   line-height: 1.5;
   word-wrap: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  display: inline-block;
   position: relative;
   animation: messageSlideIn 0.3s ease-out;
   transition: all 0.2s ease;
@@ -668,6 +672,7 @@
   flex-direction: column;
   gap: 4px;
   max-width: 80%;
+  min-width: fit-content;
 }
 
 .message-actions {
