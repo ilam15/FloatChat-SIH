@@ -38,16 +38,16 @@ body, html, #root {
 }
 
 /* Homepage specific adjustments with proper spacing */
-.homepage-container {
-  padding-top: 2rem; /* Additional spacing for homepage content */
-  min-height: calc(100vh - 70px); /* Account for header height */
+/* .homepage-container {
+  padding-top: 2rem; 
+  min-height: calc(100vh - 70px); 
   box-sizing: border-box;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Align content to top */
-}
+  justify-content: flex-start; 
+} */
 
 /* Hero section spacing */
 .hero-section {
@@ -62,38 +62,38 @@ body, html, #root {
 }
 
 /* Chatbot specific adjustments */
-.chatbot-page {
+/* .chatbot-page {
   height: calc(100vh - 70px) !important;
   margin-top: 70px;
   width: 100%;
-}
+} */
 
 /* Authentication page adjustments */
-.authentication-container {
+/* .authentication-container {
   min-height: calc(100vh - 70px);
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   padding: 2rem;
-}
+} */
 
 /* Analytics page adjustments */
-.analytics-container {
+/* .analytics-container {
   min-height: calc(100vh - 70px);
   box-sizing: border-box;
   padding: 2rem;
-}
+} */
 
 /* Settings page adjustments */
-.settings-container {
+/* .settings-container {
   min-height: calc(100vh - 70px);
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-}
+} */
 
 /* Footer styles */
 footer {
