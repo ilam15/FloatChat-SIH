@@ -1,39 +1,138 @@
+/* App.css */
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 .app {
   min-height: 100vh;
   width: 100vw;
   background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-.app-content {
+/* Header specific styles */
+.header-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 70px; /* Fixed header height */
+}
+
+/* Main content wrapper - adds spacing for fixed header */
+.main-content-wrapper {
+  width: 100%;
   flex: 1;
-  /* margin-left: 280px; / / Remove this line */
-  overflow: hidden;
+  padding-top: 70px; /* This creates the gap between header and content */
+  box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .app-content {
-    /* margin-left: 0; / / This is no longer needed */
-    flex: 1;
-  }
+/* Homepage specific adjustments with proper spacing */
+.homepage-container {
+  padding-top: 2rem; /* Additional spacing for homepage content */
+  min-height: calc(100vh - 70px); /* Account for header height */
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Align content to top */
 }
-/* Add this to App.css or the relevant CSS file */
-header, footer {
+
+/* Hero section spacing */
+.hero-section {
+  margin-top: 2rem; /* Space between header and hero content */
+  width: 100%;
+}
+
+/* Content sections spacing */
+.content-section {
+  margin: 3rem 0; /* Vertical spacing between sections */
+  width: 100%;
+}
+
+/* Chatbot specific adjustments */
+.chatbot-page {
+  height: calc(100vh - 70px) !important;
+  margin-top: 70px;
+  width: 100%;
+}
+
+/* Authentication page adjustments */
+.authentication-container {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 2rem;
+}
+
+/* Analytics page adjustments */
+.analytics-container {
+  min-height: calc(100vh - 70px);
+  box-sizing: border-box;
+  padding: 2rem;
+}
+
+/* Settings page adjustments */
+.settings-container {
+  min-height: calc(100vh - 70px);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Footer styles */
+footer {
   width: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-/* Add to App.css */
-body, html, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
-.app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header-nav {
+    height: 60px; /* Slightly smaller header on mobile */
+  }
+  
+  .main-content-wrapper {
+    padding-top: 60px;
+  }
+  
+  .homepage-container {
+    min-height: calc(100vh - 60px);
+    padding-top: 1.5rem;
+  }
+  
+  .hero-section {
+    margin-top: 1.5rem;
+  }
+  
+  .chatbot-page {
+    height: calc(100vh - 60px) !important;
+    margin-top: 60px;
+  }
+  
+  .authentication-container,
+  .analytics-container,
+  .settings-container {
+    min-height: calc(100vh - 60px);
+    padding: 1.5rem;
+  }
 }

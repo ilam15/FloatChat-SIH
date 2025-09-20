@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext"; // Import the auth context
 import "./Header.css";
-import oce from '../assets/oce.png';
+import o from '../assets/o.png';
 
 export const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -18,16 +18,16 @@ export const Header = () => {
   };
 
   return (
-    <nav className="header-nav">
+    <nav className="header-nav" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}>
       <div className="nav-container">
         
         {/* Logo */}
-       <Link to="/" className="logo-container">
-  <img src={oce} alt="FloatChat Logo" className="logo-img" style={{ width: "3.5rem", height: "5.5rem", maxHeight: "2.5rem" }} />
-  <span className="logo-text">
-    FloatChat
-  </span>
-</Link>
+        <Link to="/" className="logo-container">
+          <img src={o} alt="FloatChat Logo" className="logo-img" style={{ width: "3.5rem", height: "5.5rem", maxHeight: "2.5rem" }} />
+          <span className="logo-text">
+            FloatChat
+          </span>
+        </Link>
 
         {/* Centered Navigation */}
         <div className="centered-nav">

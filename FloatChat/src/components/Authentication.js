@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, ChevronRight, Waves, Fish, Compass } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ChevronRight, Waves, Fish, Compass, Building, GraduationCap, FlaskConical } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { createUser, getUserByEmail } from './dbService';
 import './Authentication.css';
 
 export const Authentication = () => {
   const [authView, setAuthView] = useState('signup');
+  const [signupStep, setSignupStep] = useState(1); // 1: Basic info, 2: Role & institution
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    rememberMe: false
+    rememberMe: false,
+    role: 'general',
+    institution: ''
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -48,11 +51,13 @@ export const Authentication = () => {
     const dataToSave = {
       fullName: formData.fullName,
       email: formData.email,
-      rememberMe: formData.rememberMe
+      rememberMe: formData.rememberMe,
+      role: formData.role,
+      institution: formData.institution
     };
     
     localStorage.setItem('oceanExplorerAuthData', JSON.stringify(dataToSave));
-  }, [formData.fullName, formData.email, formData.rememberMe]);
+  }, [formData.fullName, formData.email, formData.rememberMe, formData.role, formData.institution]);
 
   useEffect(() => {
     localStorage.setItem('oceanExplorerAuthView', authView);
@@ -78,10 +83,10 @@ export const Authentication = () => {
     }
   };
 
-  const validateForm = async () => {
+  const validateStep1 = () => {
     const newErrors = {};
     
-    if (authView === 'signup' && !formData.fullName.trim()) {
+    if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     }
     
@@ -97,42 +102,76 @@ export const Authentication = () => {
       newErrors.password = 'Password must be at least 8 characters';
     }
     
-    if (authView === 'signup' && formData.password !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    // Check if user exists for signin
-    if (authView === 'signin') {
-      try {
-        const existingUser = await getUserByEmail(formData.email);
-        if (!existingUser) {
-          newErrors.email = 'No account found with this email. Please sign up first.';
-        }
-      } catch (error) {
-        newErrors.submit = 'Error checking user. Please try again.';
-      }
-    }
-    
-    // Check if email is already registered for signup
-    if (authView === 'signup') {
-      try {
-        const existingUser = await getUserByEmail(formData.email);
-        if (existingUser) {
-          newErrors.email = 'Email is already registered. Please sign in instead.';
-        }
-      } catch (error) {
-        newErrors.submit = 'Error checking user. Please try again.';
-      }
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateStep2 = () => {
+    const newErrors = {};
+    
+    if (formData.role !== 'general' && !formData.institution.trim()) {
+      newErrors.institution = 'Institution is required for this role';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateSignInForm = async () => {
+    const newErrors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+    
+    // Check if user exists for signin
+    try {
+      const existingUser = await getUserByEmail(formData.email);
+      if (!existingUser) {
+        newErrors.email = 'No account found with this email. Please sign up first.';
+      }
+    } catch (error) {
+      newErrors.submit = 'Error checking user. Please try again.';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNextStep = (e) => {
+    e.preventDefault();
+    if (validateStep1()) {
+      setSignupStep(2);
+    }
+  };
+
+  const handleBackStep = () => {
+    setSignupStep(1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!await validateForm()) return;
+    if (authView === 'signup') {
+      if (signupStep === 1) {
+        handleNextStep(e);
+        return;
+      }
+      
+      if (!validateStep2()) return;
+    } else {
+      if (!await validateSignInForm()) return;
+    }
     
     setIsLoading(true);
     
@@ -144,7 +183,8 @@ export const Authentication = () => {
           email: formData.email,
           phone: '', // Default empty phone
           username: formData.email.split('@')[0],
-          userType: "general",
+          userType: formData.role,
+          institution: formData.role !== 'general' ? formData.institution : '',
           accountType: "Basic",
           preferences: {
             theme: "light",
@@ -206,6 +246,240 @@ export const Authentication = () => {
       setIsLoading(false);
     }
   };
+
+  const renderSignupStep1 = () => (
+    <>
+      <div className="auth-header">
+        <h2 className="auth-title">Begin Your Ocean Journey</h2>
+        <p className="auth-subtitle">Create an account to explore marine wonders</p>
+      </div>
+
+      <form onSubmit={handleNextStep} className="auth-form">
+        <div className="form-group">
+          <label htmlFor="fullName" className="form-label">Full Name</label>
+          <div className="input-wrapper">
+            <User size={18} className="input-icon" />
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              placeholder="Enter your full name"
+              className={`form-input ${errors.fullName ? 'error' : ''}`}
+            />
+          </div>
+          {errors.fullName && <span className="error-text">{errors.fullName}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="email" className="form-label">Email Address</label>
+          <div className="input-wrapper">
+            <Mail size={18} className="input-icon" />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Enter your email"
+              className={`form-input ${errors.email ? 'error' : ''}`}
+            />
+          </div>
+          {errors.email && <span className="error-text">{errors.email}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="password" className="form-label">Password</label>
+          <div className="input-wrapper">
+            <Lock size={18} className="input-icon" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Create a password (min. 8 characters)"
+              className={`form-input ${errors.password ? 'error' : ''}`}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          {errors.password && <span className="error-text">{errors.password}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+          <div className="input-wrapper">
+            <Lock size={18} className="input-icon" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              placeholder="Confirm your password"
+              className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+            />
+          </div>
+          {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
+        </div>
+
+        <button 
+          type="submit" 
+          className="auth-button"
+        >
+          Next Step
+          <ChevronRight size={18} />
+        </button>
+      </form>
+
+      <div className="auth-footer">
+        <p className="footer-text">
+          Already have an account? 
+          <button 
+            onClick={() => {
+              setAuthView('signin');
+              setSignupStep(1);
+            }} 
+            className="auth-link"
+          >
+            Sign in
+          </button>
+        </p>
+      </div>
+    </>
+  );
+
+  const renderSignupStep2 = () => (
+    <>
+      <div className="auth-header">
+        <h2 className="auth-title">Tell Us About Yourself</h2>
+        <p className="auth-subtitle">Help us personalize your experience</p>
+        <div className="signup-progress">
+          <div className="progress-step active"></div>
+          <div className="progress-step active"></div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label htmlFor="role" className="form-label">I am a...</label>
+          <div className="role-options">
+            <label className={`role-option ${formData.role === 'general' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="role"
+                value="general"
+                checked={formData.role === 'general'}
+                onChange={handleInputChange}
+              />
+              <div className="role-content">
+                <User size={20} />
+                <span>General User</span>
+              </div>
+            </label>
+            
+            <label className={`role-option ${formData.role === 'student' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                checked={formData.role === 'student'}
+                onChange={handleInputChange}
+              />
+              <div className="role-content">
+                <GraduationCap size={20} />
+                <span>Student</span>
+              </div>
+            </label>
+            
+            <label className={`role-option ${formData.role === 'researcher' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="role"
+                value="researcher"
+                checked={formData.role === 'researcher'}
+                onChange={handleInputChange}
+              />
+              <div className="role-content">
+                <FlaskConical size={20} />
+                <span>Researcher</span>
+              </div>
+            </label>
+            
+            <label className={`role-option ${formData.role === 'scientist' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="role"
+                value="scientist"
+                checked={formData.role === 'scientist'}
+                onChange={handleInputChange}
+              />
+              <div className="role-content">
+                <FlaskConical size={20} />
+                <span>Scientist</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {(formData.role === 'student' || formData.role === 'researcher' || formData.role === 'scientist') && (
+          <div className="form-group">
+            <label htmlFor="institution" className="form-label">Institution / Organization</label>
+            <div className="input-wrapper">
+              <Building size={18} className="input-icon" />
+              <input
+                type="text"
+                id="institution"
+                name="institution"
+                value={formData.institution}
+                onChange={handleInputChange}
+                placeholder="Enter your institution or organization"
+                className={`form-input ${errors.institution ? 'error' : ''}`}
+              />
+            </div>
+            {errors.institution && <span className="error-text">{errors.institution}</span>}
+          </div>
+        )}
+
+        <div className="form-buttons">
+          <button 
+            type="button" 
+            className="auth-button secondary"
+            onClick={handleBackStep}
+            disabled={isLoading}
+          >
+            Back
+          </button>
+          
+          <button 
+            type="submit" 
+            className="auth-button"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creating Account...' : 'Create Account'}
+            {!isLoading && <ChevronRight size={18} />}
+          </button>
+        </div>
+
+        {errors.submit && <span className="error-text submit-error">{errors.submit}</span>}
+      </form>
+
+      <div className="auth-footer">
+        <p className="terms">
+          By creating an account, you agree to our 
+          <a href="#terms" className="link"> Terms of Service</a> and 
+          <a href="#privacy" className="link"> Privacy Policy</a>
+        </p>
+      </div>
+    </>
+  );
 
   return (
     <div className="ocean-auth-container">
@@ -352,7 +626,10 @@ export const Authentication = () => {
                     <p className="footer-text">
                       New to OceanExplorer? 
                       <button 
-                        onClick={() => setAuthView('signup')} 
+                        onClick={() => {
+                          setAuthView('signup');
+                          setSignupStep(1);
+                        }} 
                         className="auth-link"
                       >
                         Create an account
@@ -364,115 +641,7 @@ export const Authentication = () => {
 
               {authView === 'signup' && (
                 <>
-                  <div className="auth-header">
-                    <h2 className="auth-title">Begin Your Ocean Journey</h2>
-                    <p className="auth-subtitle">Create an account to explore marine wonders</p>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="auth-form">
-                    <div className="form-group">
-                      <label htmlFor="fullName" className="form-label">Full Name</label>
-                      <div className="input-wrapper">
-                        <User size={18} className="input-icon" />
-                        <input
-                          type="text"
-                          id="fullName"
-                          name="fullName"
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                          placeholder="Enter your full name"
-                          className={`form-input ${errors.fullName ? 'error' : ''}`}
-                        />
-                      </div>
-                      {errors.fullName && <span className="error-text">{errors.fullName}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="email" className="form-label">Email Address</label>
-                      <div className="input-wrapper">
-                        <Mail size={18} className="input-icon" />
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="Enter your email"
-                          className={`form-input ${errors.email ? 'error' : ''}`}
-                        />
-                      </div>
-                      {errors.email && <span className="error-text">{errors.email}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="password" className="form-label">Password</label>
-                      <div className="input-wrapper">
-                        <Lock size={18} className="input-icon" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          id="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          placeholder="Create a password (min. 8 characters)"
-                          className={`form-input ${errors.password ? 'error' : ''}`}
-                        />
-                        <button
-                          type="button"
-                          className="password-toggle"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                      </div>
-                      {errors.password && <span className="error-text">{errors.password}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
-                      <div className="input-wrapper">
-                        <Lock size={18} className="input-icon" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          placeholder="Confirm your password"
-                          className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                        />
-                      </div>
-                      {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
-                    </div>
-
-                    <button 
-                      type="submit" 
-                      className="auth-button"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Creating Account...' : 'Create Account'}
-                      {!isLoading && <ChevronRight size={18} />}
-                    </button>
-
-                    {errors.submit && <span className="error-text submit-error">{errors.submit}</span>}
-                  </form>
-
-                  <div className="auth-footer">
-                    <p className="footer-text">
-                      Already have an account? 
-                      <button 
-                        onClick={() => setAuthView('signin')} 
-                        className="auth-link"
-                      >
-                        Sign in
-                      </button>
-                    </p>
-                    <p className="terms">
-                      By creating an account, you agree to our 
-                      <a href="#terms" className="link"> Terms of Service</a> and 
-                      <a href="#privacy" className="link"> Privacy Policy</a>
-                    </p>
-                  </div>
+                  {signupStep === 1 ? renderSignupStep1() : renderSignupStep2()}
                 </>
               )}
             </div>
