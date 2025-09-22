@@ -1,0 +1,120 @@
+
+
+.map-view-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background: #0b1020; /* fallback behind tiles */
+}
+
+.map-view-container .map-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure leaflet map stretches */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* Custom locate button styling */
+.map-locate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.map-locate-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Buoy div-icon styling */
+.buoy-icon .buoy {
+  position: relative;
+  width: 10px;
+  height: 14px;
+}
+
+.buoy-icon .buoy .mast {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 10px;
+  background: var(--buoy-color, #fbbf24);
+  transform: translateX(-50%);
+  border-radius: 1px;
+}
+
+.buoy-icon .buoy .float {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 10px;
+  height: 6px;
+  background: var(--buoy-color, #fbbf24);
+  transform: translateX(-50%);
+  border-radius: 6px 6px 2px 2px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* Permanent timestamp labels */
+.leaflet-tooltip.map-label {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Floating legend overlay */
+.map-legend {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  padding: 10px 12px;
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.map-legend .legend-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.map-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #111827;
+  margin: 6px 0;
+}
+
+.map-legend .legend-item .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* Mouse position */
+.leaflet-control.mouse-pos {
+  font-family: inherit;
+}
+

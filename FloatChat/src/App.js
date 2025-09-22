@@ -7,6 +7,7 @@ import { AnalyticsFilter } from './components/AnalyticsFilter';
 import { Authentication } from './components/Authentication';
 import { Chatbot } from './components/Chatbot';
 import { Settings } from './components/Settings';
+import { MapPage } from './components/MapPage';
 import './App.css';
 
 function AppContent() {
@@ -14,13 +15,14 @@ function AppContent() {
 
   return (
     <div className="app">
-       <Header /> 
+      <Header />
       {/* Main content wrapper with spacing for fixed header */}
       <div className="main-content-wrapper">
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/chatbot" element={<div className="chatbot-page"><Chatbot /></div>} />
           <Route path="/analytics" element={<div className="analytics-container"><AnalyticsFilter /></div>} />
+          <Route path="/map" element={<div className="map-page-container"><MapPage /></div>} />
           <Route path="/signin" element={<div className="authentication-container"><Authentication /></div>} />
           <Route path="/signup" element={<div className="authentication-container"><Authentication /></div>} />
           <Route path="/settings" element={<div className="settings-container"><Settings /></div>} />

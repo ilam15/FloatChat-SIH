@@ -1,0 +1,41 @@
+[
+  {
+    "id": "argo-1",
+    "lat": 8.6,
+    "lng": 73.1,
+    "timestamp": "2025-09-21 12:37:40",
+    "status": "Active",
+    "battery": "High"
+  },
+  {
+    "id": "argo-2",
+    "lat": 5.2,
+    "lng": 67.9,
+    "timestamp": "2025-09-18 09:23:25",
+    "status": "Active",
+    "battery": "Low"
+  },
+  {
+    "id": "argo-3",
+    "lat": 12.1,
+    "lng": 80.9,
+    "timestamp": "2025-09-17 14:12:30",
+    "status": "Maintenance",
+    "battery": "Medium"
+  },
+  { "id": "argo-4",  "lat": 14.2,  "lng": 72.5,  "timestamp": "2025-09-18 06:42:10", "status": "Active",      "battery": "High" },
+  { "id": "argo-5",  "lat": 10.8,  "lng": 76.3,  "timestamp": "2025-09-19 08:16:45", "status": "New",         "battery": "High" },
+  { "id": "argo-6",  "lat": 7.4,   "lng": 80.2,  "timestamp": "2025-09-15 11:59:21", "status": "Maintenance", "battery": "Medium" },
+  { "id": "argo-7",  "lat": 3.6,   "lng": 73.9,  "timestamp": "2025-09-20 02:33:09", "status": "Active",      "battery": "High" },
+  { "id": "argo-8",  "lat": -1.2,  "lng": 67.1,  "timestamp": "2025-09-12 17:45:30", "status": "Offline",     "battery": "Low" },
+  { "id": "argo-9",  "lat": -5.8,  "lng": 77.8,  "timestamp": "2025-09-10 13:25:12", "status": "Active",      "battery": "Medium" },
+  { "id": "argo-10", "lat": -9.1,  "lng": 83.5,  "timestamp": "2025-09-08 21:10:44", "status": "Maintenance", "battery": "Low" },
+  { "id": "argo-11", "lat": -13.4, "lng": 74.2,  "timestamp": "2025-09-05 06:58:03", "status": "Active",      "battery": "High" },
+  { "id": "argo-12", "lat": -18.7, "lng": 69.0,  "timestamp": "2025-09-03 15:22:37", "status": "Active",      "battery": "High" },
+  { "id": "argo-13", "lat": -21.2, "lng": 78.3,  "timestamp": "2025-09-01 03:41:18", "status": "New",         "battery": "High" },
+  { "id": "argo-14", "lat": -16.9, "lng": 86.6,  "timestamp": "2025-08-29 10:05:59", "status": "Active",      "battery": "Medium" },
+  { "id": "argo-15", "lat": -11.3, "lng": 92.1,  "timestamp": "2025-08-27 18:49:22", "status": "Maintenance", "battery": "Medium" },
+  { "id": "argo-16", "lat": -6.2,  "lng": 88.4,  "timestamp": "2025-08-25 07:32:11", "status": "Active",      "battery": "High" },
+  { "id": "argo-17", "lat": 1.4,   "lng": 86.9,  "timestamp": "2025-08-22 12:16:53", "status": "Offline",     "battery": "Low" },
+  { "id": "argo-18", "lat": 5.9,   "lng": 90.7,  "timestamp": "2025-08-20 23:02:45", "status": "Active",      "battery": "High" }
+]

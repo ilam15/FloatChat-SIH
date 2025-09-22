@@ -59,6 +59,15 @@ export const Header = () => {
                 Analytics
               </Link>
             </li>
+            <li>
+              <Link
+                to="/map"
+                className="nav-link"
+              >
+                <i className="fas fa-map"></i>
+                Map
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -148,6 +157,16 @@ export const Header = () => {
               >
                 <i className="fas fa-chart-line"></i>
                 Analytics
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/map"
+                className="mobile-nav-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                <i className="fas fa-map"></i>
+                Map
               </Link>
             </li>
             {!user && (
