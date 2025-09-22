@@ -498,7 +498,7 @@ export const Authentication = () => {
           <div className="left-panel">
             <div className="logo">
               <Waves size={32} color="#ffd700" />
-              <h1 className="logo-text">OceanExplorer</h1>
+              <h1 className="text-[2rem] font-bold text-white">OceanExplorer</h1>
             </div>
             
             <h2 className="tagline">Dive Into the Depths of Knowledge</h2>
