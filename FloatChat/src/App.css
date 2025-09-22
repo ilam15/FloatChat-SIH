@@ -62,11 +62,12 @@ body, html, #root {
 }
 
 /* Chatbot specific adjustments */
-/* .chatbot-page {
+.chatbot-page {
   height: calc(100vh - 70px) !important;
-  margin-top: 70px;
   width: 100%;
-} */
+  position: relative;
+  overflow: hidden;
+}
 
 /* Authentication page adjustments */
 /* .authentication-container {

@@ -57,10 +57,13 @@ export const Chatbot = () => {
   // Create new chat
   const createNewChat = () => {
     if (messages.length > 0) {
-      // Save current chat to history
+      // Generate a dynamic title based on the first user message
+      const firstMessage = messages.find(msg => msg.sender === 'user')?.text || 'New Chat';
+      const newTitle = firstMessage.length > 30 ? firstMessage.substring(0, 30) + '...' : firstMessage;
+
       const newChat = {
         id: Date.now(),
-        title: chatTitle,
+        title: newTitle,
         messages: messages,
         timestamp: new Date().toISOString()
       };
@@ -119,6 +122,28 @@ export const Chatbot = () => {
       };
       setMessages(prev => [...prev, userMessage]);
 
+      // Update or create chat in history
+      let updatedHistory = [...chatHistory];
+      if (currentChatId) {
+        updatedHistory = updatedHistory.map(chat =>
+          chat.id === currentChatId
+            ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
+            : chat
+        );
+      } else {
+        const newChat = {
+          id: Date.now(),
+          title: `File: ${file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name}`,
+          messages: [userMessage],
+          timestamp: new Date().toISOString()
+        };
+        updatedHistory = [newChat, ...chatHistory];
+        setCurrentChatId(newChat.id);
+        setChatTitle(newChat.title);
+      }
+      setChatHistory(updatedHistory);
+      saveChatHistory(updatedHistory);
+
       // Generate bot response for file upload
       setTimeout(() => {
         setIsTyping(true);
@@ -130,6 +155,15 @@ export const Chatbot = () => {
             timestamp: new Date()
           };
           setMessages(prev => [...prev, botResponse]);
+
+          // Update chat history with bot response
+          updatedHistory = updatedHistory.map(chat =>
+            chat.id === (currentChatId || updatedHistory[0].id)
+              ? { ...chat, messages: [...chat.messages, botResponse], timestamp: new Date().toISOString() }
+              : chat
+          );
+          setChatHistory(updatedHistory);
+          saveChatHistory(updatedHistory);
           setIsTyping(false);
         }, 1500);
       }, 500);
@@ -171,6 +205,28 @@ export const Chatbot = () => {
 
     setMessages(prev => [...prev, userMessage]);
 
+    // Update or create chat in history
+    let updatedHistory = [...chatHistory];
+    if (currentChatId) {
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === currentChatId
+          ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+    } else {
+      const newChat = {
+        id: Date.now(),
+        title: questionText.length > 30 ? questionText.substring(0, 30) + '...' : questionText,
+        messages: [userMessage],
+        timestamp: new Date().toISOString()
+      };
+      updatedHistory = [newChat, ...chatHistory];
+      setCurrentChatId(newChat.id);
+      setChatTitle(newChat.title);
+    }
+    setChatHistory(updatedHistory);
+    saveChatHistory(updatedHistory);
+
     // Generate bot response
     setTimeout(() => {
       setIsTyping(true);
@@ -182,6 +238,15 @@ export const Chatbot = () => {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botResponse]);
+
+        // Update chat history with bot response
+        updatedHistory = updatedHistory.map(chat =>
+          chat.id === (currentChatId || updatedHistory[0].id)
+            ? { ...chat, messages: [...chat.messages, botResponse], timestamp: new Date().toISOString() }
+            : chat
+        );
+        setChatHistory(updatedHistory);
+        saveChatHistory(updatedHistory);
         setIsTyping(false);
       }, 1500);
     }, 500);
@@ -200,6 +265,28 @@ export const Chatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
+
+    // Update or create chat in history
+    let updatedHistory = [...chatHistory];
+    if (currentChatId) {
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === currentChatId
+          ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+    } else {
+      const newChat = {
+        id: Date.now(),
+        title: inputValue.length > 30 ? inputValue.substring(0, 30) + '...' : inputValue,
+        messages: [userMessage],
+        timestamp: new Date().toISOString()
+      };
+      updatedHistory = [newChat, ...chatHistory];
+      setCurrentChatId(newChat.id);
+      setChatTitle(newChat.title);
+    }
+    setChatHistory(updatedHistory);
+    saveChatHistory(updatedHistory);
 
     try {
       const response = await fetch('http://localhost:5000/api/chat', {
@@ -220,6 +307,15 @@ export const Chatbot = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMessage]);
+
+      // Update chat history with bot response
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === (currentChatId || updatedHistory[0].id)
+          ? { ...chat, messages: [...chat.messages, botMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+      setChatHistory(updatedHistory);
+      saveChatHistory(updatedHistory);
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 2,
@@ -228,6 +324,15 @@ export const Chatbot = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+
+      // Update chat history with error message
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === (currentChatId || updatedHistory[0].id)
+          ? { ...chat, messages: [...chat.messages, errorMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+      setChatHistory(updatedHistory);
+      saveChatHistory(updatedHistory);
     } finally {
       setIsTyping(false);
     }
@@ -311,26 +416,75 @@ export const Chatbot = () => {
 
         <div className="chat-history">
           <div className="chat-history-header">Recent Chats</div>
-          {chatHistory.map((chat) => (
-            <div key={chat.id} className={`chat-history-item ${currentChatId === chat.id ? 'active' : ''}`}>
-              <div className="chat-item-content" onClick={() => loadChat(chat)}>
-                <div className="chat-title">{chat.title}</div>
-                <div className="chat-timestamp">
-                  {new Date(chat.timestamp).toLocaleDateString()}
-                </div>
-              </div>
-              <button className="delete-chat-btn" onClick={() => deleteChat(chat.id)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
-            </div>
-          ))}
+          {(() => {
+            const today = new Date();
+            const oneDayAgo = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+            const newChats = chatHistory.filter(
+              chat => new Date(chat.timestamp) >= oneDayAgo
+            );
+            const olderChats = chatHistory.filter(
+              chat => new Date(chat.timestamp) < oneDayAgo
+            );
+
+            return (
+              <>
+                {newChats.length > 0 && (
+                  <>
+                    <div className="chat-history-subheader">New Chats (Last 24 Hours)</div>
+                    {newChats.map((chat) => (
+                      <div key={chat.id} className={`chat-history-item ${currentChatId === chat.id ? 'active' : ''}`}>
+                        <div className="chat-item-content" onClick={() => loadChat(chat)}>
+                          <div className="chat-title">{chat.title}</div>
+                          <div className="chat-timestamp">
+                            {new Date(chat.timestamp).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <button className="delete-chat-btn" onClick={() => deleteChat(chat.id)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {olderChats.length > 0 && (
+                  <>
+                    <div className="chat-history-subheader">Older Chats</div>
+                    {olderChats.map((chat) => (
+                      <div key={chat.id} className={`chat-history-item ${currentChatId === chat.id ? 'active' : ''}`}>
+                        <div className="chat-item-content" onClick={() => loadChat(chat)}>
+                          <div className="chat-title">{chat.title}</div>
+                          <div className="chat-timestamp">
+                            {new Date(chat.timestamp).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <button className="delete-chat-btn" onClick={() => deleteChat(chat.id)}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
       {/* Main Chat Area */}
       <div className="main-chat-area">
+        {/* Hamburger Menu Button */}
+        <button className="hamburger-btn" onClick={toggleSidebar} title="Toggle Sidebar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
         {/* Messages */}
         <div className="chatgpt-messages">
           {messages.length === 0 ? (
@@ -379,7 +533,6 @@ export const Chatbot = () => {
                         <button
                           className="message-action-btn"
                           onClick={() => {
-                            // Regenerate response functionality
                             setIsTyping(true);
                             setTimeout(() => {
                               const newResponse = generateBotResponse("regenerate");
@@ -389,6 +542,15 @@ export const Chatbot = () => {
                                   : msg
                               );
                               setMessages(updatedMessages);
+
+                              // Update chat history with regenerated response
+                              const updatedHistory = chatHistory.map(chat =>
+                                chat.id === currentChatId
+                                  ? { ...chat, messages: updatedMessages, timestamp: new Date().toISOString() }
+                                  : chat
+                              );
+                              setChatHistory(updatedHistory);
+                              saveChatHistory(updatedHistory);
                               setIsTyping(false);
                             }, 1500);
                           }}
