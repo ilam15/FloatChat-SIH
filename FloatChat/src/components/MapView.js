@@ -18,16 +18,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl,
 });
 
-// Normalized buoy points from JSON
-const rawPoints = buoys
-  .filter(b => typeof b.lat === 'number' && typeof b.lng === 'number')
-  .map(b => ({
-    id: b.id || `${b.lat},${b.lng}`,
-    position: [b.lat, b.lng],
-    raw: b,
-  }));
+// Lightweight CSV parser (no quoted commas handling needed for our simple data)
+function parseCSV(text) {
+  if (!text) return [];
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+  const idx = (name) => headers.indexOf(name);
+  const idI = idx('id');
+  const latI = idx('lat');
+  const lngI = idx('lng');
+  const statusI = idx('status');
+  const pressureI = idx('pressure');
+  const salinityI = idx('salinity');
+  const temperatureI = idx('temperature');
+  return lines.slice(1)
+    .map(line => {
+      if (!line || !line.trim()) return null;
+      const cols = line.split(',');
+      const lat = parseFloat(cols[latI]);
+      const lng = parseFloat(cols[lngI]);
+      if (!isFinite(lat) || !isFinite(lng)) return null;
+      const pressure = cols[pressureI] !== undefined ? parseFloat(cols[pressureI]) : undefined;
+      const salinity = cols[salinityI] !== undefined ? parseFloat(cols[salinityI]) : undefined;
+      const temperature = cols[temperatureI] !== undefined ? parseFloat(cols[temperatureI]) : undefined;
+      return {
+        id: cols[idI] || `${lat},${lng}`,
+        lat,
+        lng,
+        status: cols[statusI] || '',
+        pressure: isFinite(pressure) ? pressure : undefined,
+        salinity: isFinite(salinity) ? salinity : undefined,
+        temperature: isFinite(temperature) ? temperature : undefined,
+      };
+    })
+    .filter(Boolean);
+}
 
 export const MapView = ({ isVisible }) => {
+  const [sourceData, setSourceData] = useState([]);
   const [filters, setFilters] = useState({
     active: true,
     new: true,
@@ -35,8 +64,37 @@ export const MapView = ({ isVisible }) => {
     offline: true,
   });
 
+  // Load CSV from public/ if available; fallback to bundled JSON
+  useEffect(() => {
+    let isMounted = true;
+    const csvUrl = (process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}` : '') + '/buoys.csv';
+    fetch(csvUrl, { cache: 'no-cache' })
+      .then(res => res.ok ? res.text() : Promise.reject(new Error(`HTTP ${res.status}`)))
+      .then(text => {
+        const parsed = parseCSV(text);
+        if (isMounted) setSourceData(parsed);
+      })
+      .catch(() => {
+        // If CSV not found or invalid, leave sourceData empty to use JSON fallback
+      });
+    return () => { isMounted = false; };
+  }, []);
+
+  const baseData = sourceData.length ? sourceData : buoys;
+
+  // Normalize to map points
+  const normalizedPoints = useMemo(() => {
+    return baseData
+      .filter(b => typeof b.lat === 'number' && typeof b.lng === 'number')
+      .map(b => ({
+        id: b.id || `${b.lat},${b.lng}`,
+        position: [b.lat, b.lng],
+        raw: b,
+      }));
+  }, [baseData]);
+
   const dataPoints = useMemo(() => {
-    return rawPoints.filter(p => {
+    return normalizedPoints.filter(p => {
       const status = (p.raw.status || '').toLowerCase();
       if (status.includes('active')) return filters.active;
       if (status.includes('new')) return filters.new;
@@ -44,7 +102,7 @@ export const MapView = ({ isVisible }) => {
       if (status.includes('offline')) return filters.offline;
       return true; // show if status unknown
     });
-  }, [filters]);
+  }, [filters, normalizedPoints]);
 
   if (!isVisible) {
     return null;
@@ -111,7 +169,7 @@ function MousePositionControl({ position = 'bottomright' }) {
         zoom={5}
         minZoom={2}
         scrollWheelZoom={true}
-        worldCopyJump={false}
+        worldCopyJump={true}
         maxBounds={[[ -85, -180 ], [ 85, 180 ]]}
         maxBoundsViscosity={1.0}
         style={{ height: '100%', width: '100%' }}
@@ -123,14 +181,14 @@ function MousePositionControl({ position = 'bottomright' }) {
           <LayersControl.BaseLayer checked name="Satellite">
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              noWrap={true}
+              noWrap={false}
               attribution='&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri'
             />
           </LayersControl.BaseLayer>
           <LayersControl.BaseLayer name="Streets">
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              noWrap={true}
+              noWrap={false}
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
           </LayersControl.BaseLayer>
@@ -166,17 +224,12 @@ function MousePositionControl({ position = 'bottomright' }) {
               })}
             >
               <Popup>
-                <div style={{ minWidth: 200 }}>
+                <div style={{ minWidth: 220 }}>
                   <div style={{ fontWeight: 700, marginBottom: 6 }}>{point.raw.id || 'Buoy'}</div>
-                  {point.raw.timestamp && (
-                    <div><strong>Timestamp:</strong> {point.raw.timestamp}</div>
-                  )}
-                  {point.raw.status && (
-                    <div><strong>Status:</strong> {point.raw.status}</div>
-                  )}
-                  {point.raw.battery && (
-                    <div><strong>Battery:</strong> {point.raw.battery}</div>
-                  )}
+                  <div><strong>Status:</strong> {point.raw.status || 'N/A'}</div>
+                  <div><strong>Pressure:</strong> {point.raw.pressure ?? 'N/A'}</div>
+                  <div><strong>Salinity:</strong> {point.raw.salinity ?? 'N/A'}</div>
+                  <div><strong>Temperature:</strong> {point.raw.temperature ?? 'N/A'}</div>
                   <div><strong>Lat:</strong> {point.position[0].toFixed(4)}, <strong>Lng:</strong> {point.position[1].toFixed(4)}</div>
                 </div>
               </Popup>
