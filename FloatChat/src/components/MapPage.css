@@ -1,0 +1,101 @@
+/* Map Page Container */
+.map-page-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 2rem 0;
+}
+
+.map-page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 0 2rem;
+}
+
+.map-page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.map-page-subtitle {
+  font-size: 1.125rem;
+  color: #64748b;
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.map-page-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Override MapView styles for full page */
+.map-page-content .map-view-container {
+  height: 70vh;
+  min-height: 500px;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Ensure map container fills the space properly */
+.map-page-content .map-view-container .map-container {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .map-page-container {
+    padding: 1rem 0;
+  }
+
+  .map-page-header {
+    padding: 0 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .map-page-title {
+    font-size: 2rem;
+  }
+
+  .map-page-subtitle {
+    font-size: 1rem;
+  }
+
+  .map-page-content {
+    padding: 0 1rem;
+  }
+
+  .map-page-content .map-view-container {
+    height: 60vh;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-page-title {
+    font-size: 1.75rem;
+  }
+
+  .map-page-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .map-page-content .map-view-container {
+    height: 50vh;
+    min-height: 350px;
+  }
+}
