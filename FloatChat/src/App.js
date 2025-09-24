@@ -25,6 +25,7 @@ function AppContent() {
           <Route path="/map" element={<div className="map-page-container"><MapPage /></div>} />
           <Route path="/signin" element={<div className="authentication-container"><Authentication /></div>} />
           <Route path="/signup" element={<div className="authentication-container"><Authentication /></div>} />
+          <Route path="/auth" element={<Authentication/>}/>
           <Route path="/settings" element={<div className="settings-container"><Settings /></div>} />
         </Routes>
       </div>

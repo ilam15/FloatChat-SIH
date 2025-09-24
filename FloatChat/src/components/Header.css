@@ -87,12 +87,12 @@
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  /* transition: background-color 0.2s; */
 }
 
 .login-btn {
   background-color: blue;
-  color: white;
+  color: white; 
 }
 
 .login-btn:hover {

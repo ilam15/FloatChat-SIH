@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import './Chatbot.css';
+import { useAuth } from './AuthContext';
+import { createUser, getUserByEmail } from './dbService';
 
 export const Chatbot = () => {
+  const { currentUser, login } = useAuth();
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -10,9 +13,27 @@ export const Chatbot = () => {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatTitle, setChatTitle] = useState('New Chat');
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Helper function to get user-specific storage key
+  const getUserChatsKey = (userId) => `chat-history-${userId}`;
+  const getUserPendingChatKey = (userId) => `pending-chat-${userId}`;
+
+  // Count user messages for unauthenticated users
+  const userMessageCount = messages.filter(msg => msg.sender === 'user').length;
+
+  // Check if user needs to login (after exactly 3 messages and not authenticated)
+  const checkAndShowLoginModal = () => {
+    // Show modal when user has sent exactly 3 messages and tries to send a 4th
+    if (!currentUser && userMessageCount === 3) {
+      setShowLoginModal(true);
+      return true;
+    }
+    return false;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -31,17 +52,67 @@ export const Chatbot = () => {
   useEffect(() => {
     console.log('ChatGPT-style ChatBot component mounted!');
 
-    // Load theme and chat history from localStorage
+    // Load theme from localStorage
     const savedTheme = localStorage.getItem('chatbot-theme');
     if (savedTheme === 'dark') {
       setIsDarkMode(true);
     }
 
-    const savedHistory = localStorage.getItem('chat-history');
-    if (savedHistory) {
-      setChatHistory(JSON.parse(savedHistory));
+    // Check if user is logged in from localStorage
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser && !currentUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        login(userData);
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('currentUser');
+      }
     }
-  }, []);
+  }, [currentUser, login]);
+
+  // Load user-specific chat history when user changes
+  useEffect(() => {
+    if (currentUser) {
+      // Load chats for this specific user
+      const userChatsKey = getUserChatsKey(currentUser.id);
+      const savedHistory = localStorage.getItem(userChatsKey);
+      if (savedHistory) {
+        try {
+          setChatHistory(JSON.parse(savedHistory));
+        } catch (error) {
+          console.error('Error parsing user chat history:', error);
+          setChatHistory([]);
+        }
+      } else {
+        setChatHistory([]); // New user = empty history
+      }
+
+      // Check for user-specific pending chat state
+      const userPendingKey = getUserPendingChatKey(currentUser.id);
+      const pendingChat = localStorage.getItem(userPendingKey);
+      if (pendingChat) {
+        try {
+          const chatState = JSON.parse(pendingChat);
+          setMessages(chatState.messages || []);
+          setCurrentChatId(chatState.currentChatId || null);
+          setChatTitle(chatState.chatTitle || 'New Chat');
+          
+          // Clear the pending state for this user
+          localStorage.removeItem(userPendingKey);
+        } catch (error) {
+          console.error('Error restoring user chat state:', error);
+          localStorage.removeItem(userPendingKey);
+        }
+      }
+    } else {
+      // No user logged in = clear everything
+      setChatHistory([]);
+      setMessages([]);
+      setCurrentChatId(null);
+      setChatTitle('New Chat');
+    }
+  }, [currentUser]);
 
   const toggleTheme = () => {
     const newTheme = !isDarkMode;
@@ -49,14 +120,19 @@ export const Chatbot = () => {
     localStorage.setItem('chatbot-theme', newTheme ? 'dark' : 'light');
   };
 
-  // Save chat history to localStorage
+  // Save chat history to user-specific localStorage
   const saveChatHistory = (history) => {
-    localStorage.setItem('chat-history', JSON.stringify(history));
+    if (currentUser) {
+      localStorage.setItem(
+        getUserChatsKey(currentUser.id), 
+        JSON.stringify(history)
+      );
+    }
   };
 
   // Create new chat
   const createNewChat = () => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && currentUser) {
       // Generate a dynamic title based on the first user message
       const firstMessage = messages.find(msg => msg.sender === 'user')?.text || 'New Chat';
       const newTitle = firstMessage.length > 30 ? firstMessage.substring(0, 30) + '...' : firstMessage;
@@ -112,98 +188,27 @@ export const Chatbot = () => {
   // Handle file upload
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const userMessage = {
-        id: Date.now(),
-        text: `📎 Uploaded file: ${file.name}`,
-        sender: 'user',
-        timestamp: new Date(),
-        file: file
-      };
-      setMessages(prev => [...prev, userMessage]);
-
-      // Update or create chat in history
-      let updatedHistory = [...chatHistory];
-      if (currentChatId) {
-        updatedHistory = updatedHistory.map(chat =>
-          chat.id === currentChatId
-            ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
-            : chat
-        );
-      } else {
-        const newChat = {
-          id: Date.now(),
-          title: `File: ${file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name}`,
-          messages: [userMessage],
-          timestamp: new Date().toISOString()
-        };
-        updatedHistory = [newChat, ...chatHistory];
-        setCurrentChatId(newChat.id);
-        setChatTitle(newChat.title);
-      }
-      setChatHistory(updatedHistory);
-      saveChatHistory(updatedHistory);
-
-      // Generate bot response for file upload
-      setTimeout(() => {
-        setIsTyping(true);
-        setTimeout(() => {
-          const botResponse = {
-            id: Date.now() + 1,
-            text: `I can see you've uploaded "${file.name}". While I can't actually process files in this demo, in a real implementation I could analyze documents, images, and other file types to help you with your questions.`,
-            sender: 'bot',
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, botResponse]);
-
-          // Update chat history with bot response
-          updatedHistory = updatedHistory.map(chat =>
-            chat.id === (currentChatId || updatedHistory[0].id)
-              ? { ...chat, messages: [...chat.messages, botResponse], timestamp: new Date().toISOString() }
-              : chat
-          );
-          setChatHistory(updatedHistory);
-          saveChatHistory(updatedHistory);
-          setIsTyping(false);
-        }, 1500);
-      }, 500);
-    }
-  };
-
-  const quickActions = [
-    { id: 1, text: "What are your features?", action: "features" },
-    { id: 2, text: "Pricing plans", action: "pricing" },
-    { id: 3, text: "Get support", action: "support" },
-    { id: 4, text: "Demo request", action: "demo" }
-  ];
-
-  const handleQuickAction = (action) => {
-    let questionText = "";
-    switch(action) {
-      case "features":
-        questionText = "What are your features?";
-        break;
-      case "pricing":
-        questionText = "What are your pricing plans?";
-        break;
-      case "support":
-        questionText = "I need support";
-        break;
-      case "demo":
-        questionText = "I'd like to request a demo";
-        break;
-      default:
-        questionText = "Tell me more";
-    }
+    if (!file) return;
 
     const userMessage = {
       id: Date.now(),
-      text: questionText,
+      text: `📎 Uploaded file: ${file.name}`,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      file: file
     };
-
     setMessages(prev => [...prev, userMessage]);
+
+    // Check if user needs to login (after 3 messages, i.e., userMessageCount will be 3 after adding the new message)
+    if (!currentUser && messages.filter(msg => msg.sender === 'user').length === 2) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // Proceed with chat history update and bot response only if user is authenticated or within message limit
+    if (!currentUser && messages.filter(msg => msg.sender === 'user').length >= 3) {
+      return; // Stop further processing if modal was shown
+    }
 
     // Update or create chat in history
     let updatedHistory = [...chatHistory];
@@ -216,7 +221,7 @@ export const Chatbot = () => {
     } else {
       const newChat = {
         id: Date.now(),
-        title: questionText.length > 30 ? questionText.substring(0, 30) + '...' : questionText,
+        title: `File: ${file.name.length > 30 ? file.name.substring(0, 30) + '...' : file.name}`,
         messages: [userMessage],
         timestamp: new Date().toISOString()
       };
@@ -227,13 +232,13 @@ export const Chatbot = () => {
     setChatHistory(updatedHistory);
     saveChatHistory(updatedHistory);
 
-    // Generate bot response
+    // Generate bot response for file upload
     setTimeout(() => {
       setIsTyping(true);
       setTimeout(() => {
         const botResponse = {
           id: Date.now() + 1,
-          text: generateQuickActionResponse(action),
+          text: `I can see you've uploaded "${file.name}". While I can't actually process files in this demo, in a real implementation I could analyze documents, images, and other file types to help you with your questions.`,
           sender: 'bot',
           timestamp: new Date()
         };
@@ -241,7 +246,7 @@ export const Chatbot = () => {
 
         // Update chat history with bot response
         updatedHistory = updatedHistory.map(chat =>
-          chat.id === (currentChatId || updatedHistory[0].id)
+          chat.id === (currentChatId || updatedHistory[0]?.id)
             ? { ...chat, messages: [...chat.messages, botResponse], timestamp: new Date().toISOString() }
             : chat
         );
@@ -252,91 +257,12 @@ export const Chatbot = () => {
     }, 500);
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    const userMessage = {
-      id: Date.now(),
-      text: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsTyping(true);
-
-    // Update or create chat in history
-    let updatedHistory = [...chatHistory];
-    if (currentChatId) {
-      updatedHistory = updatedHistory.map(chat =>
-        chat.id === currentChatId
-          ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
-          : chat
-      );
-    } else {
-      const newChat = {
-        id: Date.now(),
-        title: inputValue.length > 30 ? inputValue.substring(0, 30) + '...' : inputValue,
-        messages: [userMessage],
-        timestamp: new Date().toISOString()
-      };
-      updatedHistory = [newChat, ...chatHistory];
-      setCurrentChatId(newChat.id);
-      setChatTitle(newChat.title);
-    }
-    setChatHistory(updatedHistory);
-    saveChatHistory(updatedHistory);
-
-    try {
-      const response = await fetch('http://localhost:5000/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: inputValue }),
-      });
-      if (!response.ok) {
-        throw new Error('API error');
-      }
-      const data = await response.json();
-      const botMessage = {
-        id: Date.now() + 1,
-        text: data.reply || 'No response from bot.',
-        sender: 'bot',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, botMessage]);
-
-      // Update chat history with bot response
-      updatedHistory = updatedHistory.map(chat =>
-        chat.id === (currentChatId || updatedHistory[0].id)
-          ? { ...chat, messages: [...chat.messages, botMessage], timestamp: new Date().toISOString() }
-          : chat
-      );
-      setChatHistory(updatedHistory);
-      saveChatHistory(updatedHistory);
-    } catch (error) {
-      const errorMessage = {
-        id: Date.now() + 2,
-        text: 'Error: Unable to connect to the backend API.',
-        sender: 'bot',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-
-      // Update chat history with error message
-      updatedHistory = updatedHistory.map(chat =>
-        chat.id === (currentChatId || updatedHistory[0].id)
-          ? { ...chat, messages: [...chat.messages, errorMessage], timestamp: new Date().toISOString() }
-          : chat
-      );
-      setChatHistory(updatedHistory);
-      saveChatHistory(updatedHistory);
-    } finally {
-      setIsTyping(false);
-    }
-  };
+  const quickActions = [
+    { id: 1, text: "What are your features?", action: "features" },
+    { id: 2, text: "Pricing plans", action: "pricing" },
+    { id: 3, text: "Get support", action: "support" },
+    { id: 4, text: "Demo request", action: "demo" }
+  ];
 
   const generateQuickActionResponse = (action) => {
     switch(action) {
@@ -390,6 +316,194 @@ export const Chatbot = () => {
     }
   };
 
+  const handleQuickAction = (action) => {
+    // Create the user message for the quick action
+    let questionText = '';
+    switch (action) {
+      case 'features':
+        questionText = 'What are your features?';
+        break;
+      case 'pricing':
+        questionText = 'What are your pricing plans?';
+        break;
+      case 'support':
+        questionText = 'I need support';
+        break;
+      case 'demo':
+        questionText = 'I’d like to request a demo';
+        break;
+      default:
+        questionText = 'Tell me more';
+    }
+
+    const userMessage = {
+      id: Date.now(),
+      text: questionText,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
+    // Add the new message to the messages array
+    setMessages(prev => [...prev, userMessage]);
+
+    // Check if user needs to login (after 3 messages, i.e., userMessageCount will be 3 after adding the new message)
+    if (!currentUser && messages.filter(msg => msg.sender === 'user').length === 2) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // Proceed with chat history update and bot response only if user is authenticated or within message limit
+    if (!currentUser && messages.filter(msg => msg.sender === 'user').length >= 3) {
+      return; // Stop further processing if modal was shown
+    }
+
+    // Update or create chat in history
+    let updatedHistory = [...chatHistory];
+    if (currentChatId) {
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === currentChatId
+          ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+    } else {
+      const newChat = {
+        id: Date.now(),
+        title: questionText.length > 30 ? questionText.substring(0, 30) + '...' : questionText,
+        messages: [userMessage],
+        timestamp: new Date().toISOString(),
+      };
+      updatedHistory = [newChat, ...chatHistory];
+      setCurrentChatId(newChat.id);
+      setChatTitle(newChat.title);
+    }
+    setChatHistory(updatedHistory);
+    saveChatHistory(updatedHistory);
+
+    // Generate bot response
+    setTimeout(() => {
+      setIsTyping(true);
+      setTimeout(() => {
+        const botResponse = {
+          id: Date.now() + 1,
+          text: generateQuickActionResponse(action),
+          sender: 'bot',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, botResponse]);
+
+        // Update chat history with bot response
+        updatedHistory = updatedHistory.map(chat =>
+          chat.id === (currentChatId || updatedHistory[0]?.id)
+            ? { ...chat, messages: [...chat.messages, botResponse], timestamp: new Date().toISOString() }
+            : chat
+        );
+        setChatHistory(updatedHistory);
+        saveChatHistory(updatedHistory);
+        setIsTyping(false);
+      }, 1500);
+    }, 500);
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+
+    // Create the new user message
+    const userMessage = {
+      id: Date.now(),
+      text: inputValue,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
+    // Add the new message to the messages array
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+
+    // Check if user needs to login (after 3 messages, i.e., userMessageCount will be 3 after adding the new message)
+    if (!currentUser && messages.filter(msg => msg.sender === 'user').length === 2) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // Proceed with chat history update and bot response only if user is authenticated or within message limit
+    if (!currentUser && messages.filter(msg => msg.sender === 'user').length >= 3) {
+      return; // Stop further processing if modal was shown
+    }
+
+    setIsTyping(true);
+
+    // Update or create chat in history
+    let updatedHistory = [...chatHistory];
+    if (currentChatId) {
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === currentChatId
+          ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+    } else {
+      const newChat = {
+        id: Date.now(),
+        title: inputValue.length > 30 ? inputValue.substring(0, 30) + '...' : inputValue,
+        messages: [userMessage],
+        timestamp: new Date().toISOString(),
+      };
+      updatedHistory = [newChat, ...chatHistory];
+      setCurrentChatId(newChat.id);
+      setChatTitle(newChat.title);
+    }
+    setChatHistory(updatedHistory);
+    saveChatHistory(updatedHistory);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: inputValue }),
+      });
+      if (!response.ok) {
+        throw new Error('API error');
+      }
+      const data = await response.json();
+      const botMessage = {
+        id: Date.now() + 1,
+        text: data.reply || 'No response from bot.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+
+      // Update chat history with bot response
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === (currentChatId || updatedHistory[0]?.id)
+          ? { ...chat, messages: [...chat.messages, botMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+      setChatHistory(updatedHistory);
+      saveChatHistory(updatedHistory);
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now() + 2,
+        text: 'Error: Unable to connect to the backend API.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+
+      // Update chat history with error message
+      updatedHistory = updatedHistory.map(chat =>
+        chat.id === (currentChatId || updatedHistory[0]?.id)
+          ? { ...chat, messages: [...chat.messages, errorMessage], timestamp: new Date().toISOString() }
+          : chat
+      );
+      setChatHistory(updatedHistory);
+      saveChatHistory(updatedHistory);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -401,8 +515,65 @@ export const Chatbot = () => {
     setInputValue(e.target.value);
   };
 
+  // Updated Login Modal Component
+  const LoginModal = () => (
+    <div className="login-modal-overlay">
+      <div className="login-modal">
+        <div className="login-modal-header">
+          <h3>Continue Your Conversation</h3>
+          <button 
+            className="close-modal-btn"
+            onClick={() => setShowLoginModal(false)}
+          >
+            ×
+          </button>
+        </div>
+        <div className="login-modal-body">
+          <p>You've used your 3 free messages. Please login to continue chatting.</p>
+          <div className="login-modal-actions">
+            <button 
+              className="login-btn primary"
+              onClick={() => {
+                setShowLoginModal(false);
+                // Save current chat state for this specific user before redirecting
+                if (currentUser) {
+                  localStorage.setItem(
+                    getUserPendingChatKey(currentUser.id), 
+                    JSON.stringify({
+                      messages: messages,
+                      currentChatId: currentChatId,
+                      chatTitle: chatTitle,
+                      timestamp: new Date().toISOString()
+                    })
+                  );
+                }
+                // Redirect to authentication page
+                window.location.href = '/auth';
+              }}
+            >
+              Login / Sign Up
+            </button>
+            <button 
+              className="login-btn secondary"
+              onClick={() => setShowLoginModal(false)}
+            >
+              Maybe Later
+            </button>
+          </div>
+          <div className="login-modal-info">
+            <p>💡 <strong>After login</strong>, you'll be redirected back to continue your conversation.</p>
+            <p>🔒 <strong>Your chats are private</strong> - each user account has separate chat history.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className={`chatgpt-container ${isDarkMode ? 'dark-theme' : 'light-theme'}`}>
+      {/* Login Modal */}
+      {showLoginModal && <LoginModal />}
+
       {/* Sidebar */}
       <div className={`sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
         <div className="sidebar-header">
@@ -415,8 +586,18 @@ export const Chatbot = () => {
         </div>
 
         <div className="chat-history">
-          <div className="chat-history-header">Recent Chats</div>
+          <div className="chat-history-header">
+            Recent Chats {currentUser && `(${currentUser.email})`}
+          </div>
           {(() => {
+            if (!currentUser) {
+              return (
+                <div className="no-chats-message">
+                  <p>Please login to see your chat history</p>
+                </div>
+              );
+            }
+
             const today = new Date();
             const oneDayAgo = new Date(today.getTime() - 24 * 60 * 60 * 1000);
             const newChats = chatHistory.filter(
@@ -425,6 +606,14 @@ export const Chatbot = () => {
             const olderChats = chatHistory.filter(
               chat => new Date(chat.timestamp) < oneDayAgo
             );
+
+            if (newChats.length === 0 && olderChats.length === 0) {
+              return (
+                <div className="no-chats-message">
+                  <p>No chats yet. Start a new conversation!</p>
+                </div>
+              );
+            }
 
             return (
               <>
@@ -492,6 +681,13 @@ export const Chatbot = () => {
               <h2>Welcome to FloatChat Bot</h2>
               <p>I'm here to help you with any questions about FloatChat. Feel free to ask me about features, pricing, or anything else!</p>
 
+              {/* Show message limit info for unauthenticated users */}
+              {!currentUser && (
+                <div className="message-limit-info">
+                  <p>💡 <strong>Free trial:</strong> You can send up to 3 messages without logging in.</p>
+                </div>
+              )}
+
               {/* Quick Action Suggestions */}
               <div className="quick-suggestions">
                 <div className="suggestions-title">Try asking about:</div>
@@ -501,6 +697,7 @@ export const Chatbot = () => {
                       key={action.id}
                       className="suggestion-btn"
                       onClick={() => handleQuickAction(action.action)}
+                      disabled={!currentUser && userMessageCount >= 3}
                     >
                       {action.text}
                     </button>
@@ -544,13 +741,15 @@ export const Chatbot = () => {
                               setMessages(updatedMessages);
 
                               // Update chat history with regenerated response
-                              const updatedHistory = chatHistory.map(chat =>
-                                chat.id === currentChatId
-                                  ? { ...chat, messages: updatedMessages, timestamp: new Date().toISOString() }
-                                  : chat
-                              );
-                              setChatHistory(updatedHistory);
-                              saveChatHistory(updatedHistory);
+                              if (currentUser) {
+                                const updatedHistory = chatHistory.map(chat =>
+                                  chat.id === currentChatId
+                                    ? { ...chat, messages: updatedMessages, timestamp: new Date().toISOString() }
+                                    : chat
+                                );
+                                setChatHistory(updatedHistory);
+                                saveChatHistory(updatedHistory);
+                              }
                               setIsTyping(false);
                             }, 1500);
                           }}
@@ -593,6 +792,7 @@ export const Chatbot = () => {
                 className="attachment-btn"
                 onClick={() => fileInputRef.current?.click()}
                 title="Attach file"
+                disabled={!currentUser && userMessageCount >= 3}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path d="M21.44 11.05L12.25 20.24C11.1242 21.3658 9.59722 22.0001 8.005 22.0001C6.41278 22.0001 4.88583 21.3658 3.76 20.24C2.63417 19.1142 1.99994 17.5872 1.99994 15.995C1.99994 14.4028 2.63417 12.8758 3.76 11.75L12.95 2.56C13.7006 1.80944 14.7186 1.38787 15.78 1.38787C16.8414 1.38787 17.8594 1.80944 18.61 2.56C19.3606 3.31056 19.7821 4.32856 19.7821 5.39C19.7821 6.45144 19.3606 7.46944 18.61 8.22L9.41 17.41C9.03494 17.7851 8.52556 17.9972 8 17.9972C7.47444 17.9972 6.96506 17.7851 6.59 17.41C6.21494 17.0349 6.00284 16.5256 6.00284 16C6.00284 15.4744 6.21494 14.9651 6.59 14.59L15.07 6.12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -601,25 +801,43 @@ export const Chatbot = () => {
               <textarea
                 ref={inputRef}
                 className="chatgpt-input-field"
-                placeholder="Message FloatChat Bot..."
+                placeholder={
+                  !currentUser && userMessageCount >= 3 
+                    ? "Please login to continue chatting..." 
+                    : "Message FloatChat Bot..."
+                }
                 value={inputValue}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 rows="1"
+                disabled={!currentUser && userMessageCount >= 3}
+                onFocus={() => {
+                  if (!currentUser && userMessageCount >= 3) {
+                    setShowLoginModal(true);
+                  }
+                }}
               />
               <button
                 className="chatgpt-send-button"
                 onClick={handleSendMessage}
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() || (!currentUser && userMessageCount >= 3)}
               >
                 <svg className="send-icon" viewBox="0 0 24 24">
                   <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
+                </svg> 
               </button>
             </div>
             <div className="input-footer">
               <div className="input-info">
-                FloatChat AI can make mistakes. Consider checking important information.
+                {!currentUser && userMessageCount >= 3 ? (
+                  <span style={{color: '#ff6b6b'}}>
+                    🔒 Message limit reached. Please login to continue.
+                  </span>
+                ) : !currentUser ? (
+                  `💡 Free trial: ${3 - userMessageCount} messages remaining`
+                ) : (
+                  `🔒 Chat history private to ${currentUser.email}`
+                )}
               </div>
             </div>
           </div>

@@ -63,6 +63,24 @@ export const Authentication = () => {
     localStorage.setItem('oceanExplorerAuthView', authView);
   }, [authView]);
 
+  useEffect(() => {
+    // Check if there's a pending chat state to restore after login
+    const checkPendingChat = () => {
+      const pendingChat = localStorage.getItem('pendingChatState');
+      const user = localStorage.getItem('currentUser');
+      
+      if (user && pendingChat) {
+        // User just logged in and there's a pending chat
+        setTimeout(() => {
+          localStorage.removeItem('pendingChatState');
+          window.location.href = '/'; // Redirect back to chat
+        }, 1000);
+      }
+    };
+
+    checkPendingChat();
+  }, [currentUser]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -211,7 +229,7 @@ export const Authentication = () => {
         // Redirect after a short delay
         setTimeout(() => {
           window.location.href = '/';
-        }, 1500);
+        }, 150);
       } else {
         // Sign in existing user
         const user = await getUserByEmail(formData.email);
@@ -238,7 +256,7 @@ export const Authentication = () => {
         // Redirect after a short delay
         setTimeout(() => {
           window.location.href = '/';
-        }, 1500);
+        }, 150);
       }
     } catch (error) {
       setErrors({ submit: `${authView === 'signin' ? 'Sign in' : 'Sign up'} failed. ${error.message}` });
