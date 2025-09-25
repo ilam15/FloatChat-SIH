@@ -76,16 +76,45 @@ export const Chatbot = () => {
     if (currentUser) {
       // Load chats for this specific user
       const userChatsKey = getUserChatsKey(currentUser.id);
-      const savedHistory = localStorage.getItem(userChatsKey);
-      if (savedHistory) {
+      let savedHistory = localStorage.getItem(userChatsKey);
+      let updatedHistory = savedHistory ? JSON.parse(savedHistory) : [];
+
+      // Check for unauthenticated pending chat state
+      const pendingUnauthenticatedChat = localStorage.getItem('pending-chat-unauthenticated');
+      if (pendingUnauthenticatedChat) {
         try {
-          setChatHistory(JSON.parse(savedHistory));
+          const chatState = JSON.parse(pendingUnauthenticatedChat);
+          const chatTimestamp = new Date(chatState.timestamp);
+          const now = new Date();
+          const hoursDiff = (now - chatTimestamp) / (1000 * 60 * 60);
+
+          // Only restore if the pending state is less than 24 hours old
+          if (hoursDiff < 24) {
+            setMessages(chatState.messages || []);
+            setCurrentChatId(chatState.currentChatId || null);
+            setChatTitle(chatState.chatTitle || 'New Chat');
+
+            if (chatState.messages?.length > 0) {
+              const newChat = {
+                id: chatState.currentChatId || Date.now(),
+                title: chatState.chatTitle || 'New Chat',
+                messages: chatState.messages,
+                timestamp: chatState.timestamp || new Date().toISOString(),
+              };
+              updatedHistory = [newChat, ...updatedHistory];
+              setChatHistory(updatedHistory);
+              saveChatHistory(updatedHistory);
+            }
+          }
+
+          // Always clear the unauthenticated pending state
+          localStorage.removeItem('pending-chat-unauthenticated');
         } catch (error) {
-          console.error('Error parsing user chat history:', error);
-          setChatHistory([]);
+          console.error('Error restoring unauthenticated chat state:', error);
+          localStorage.removeItem('pending-chat-unauthenticated');
         }
       } else {
-        setChatHistory([]); // New user = empty history
+        setChatHistory(updatedHistory);
       }
 
       // Check for user-specific pending chat state
@@ -97,8 +126,21 @@ export const Chatbot = () => {
           setMessages(chatState.messages || []);
           setCurrentChatId(chatState.currentChatId || null);
           setChatTitle(chatState.chatTitle || 'New Chat');
-          
-          // Clear the pending state for this user
+
+          // Merge pending chat into user's chat history
+          if (chatState.messages?.length > 0) {
+            const newChat = {
+              id: chatState.currentChatId || Date.now(),
+              title: chatState.chatTitle || 'New Chat',
+              messages: chatState.messages,
+              timestamp: chatState.timestamp || new Date().toISOString(),
+            };
+            updatedHistory = [newChat, ...updatedHistory];
+            setChatHistory(updatedHistory);
+            saveChatHistory(updatedHistory);
+          }
+
+          // Clear the user-specific pending state
           localStorage.removeItem(userPendingKey);
         } catch (error) {
           console.error('Error restoring user chat state:', error);
@@ -106,7 +148,7 @@ export const Chatbot = () => {
         }
       }
     } else {
-      // No user logged in = clear everything
+      // No user logged in = clear everything except pending unauthenticated state
       setChatHistory([]);
       setMessages([]);
       setCurrentChatId(null);
@@ -535,20 +577,18 @@ export const Chatbot = () => {
               className="login-btn primary"
               onClick={() => {
                 setShowLoginModal(false);
-                // Save current chat state for this specific user before redirecting
-                if (currentUser) {
-                  localStorage.setItem(
-                    getUserPendingChatKey(currentUser.id), 
-                    JSON.stringify({
-                      messages: messages,
-                      currentChatId: currentChatId,
-                      chatTitle: chatTitle,
-                      timestamp: new Date().toISOString()
-                    })
-                  );
-                }
-                // Redirect to authentication page
-                window.location.href = '/auth';
+                // Save current chat state for unauthenticated users
+                localStorage.setItem(
+                  'pending-chat-unauthenticated', 
+                  JSON.stringify({
+                    messages: messages,
+                    currentChatId: currentChatId,
+                    chatTitle: chatTitle,
+                    timestamp: new Date().toISOString()
+                  })
+                );
+                // Redirect to authentication page with return URL
+                window.location.href = '/auth?redirect=/chatbot';
               }}
             >
               Login / Sign Up
@@ -561,7 +601,7 @@ export const Chatbot = () => {
             </button>
           </div>
           <div className="login-modal-info">
-            <p>💡 <strong>After login</strong>, you'll be redirected back to continue your conversation.</p>
+            <p>💡 <strong>After login</strong>, your current conversation will be restored exactly where you left off.</p>
             <p>🔒 <strong>Your chats are private</strong> - each user account has separate chat history.</p>
           </div>
         </div>

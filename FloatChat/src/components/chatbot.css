@@ -222,6 +222,7 @@
 
 .dark-theme .chatgpt-messages {
   /* No background pattern, inherits from main-chat-area */
+  background: none;
 }
 
 /* Welcome message - Ocean themed */
