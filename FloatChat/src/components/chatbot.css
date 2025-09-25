@@ -343,6 +343,9 @@
 /* User message alignment - RIGHT CORNER */
 .message-group.user .message-content {
   flex-direction: row-reverse;
+  margin-left: auto;
+  margin-right: 0;
+
 }
 
 .message-group.user .message-wrapper {
@@ -352,6 +355,9 @@
 /* Bot message alignment - LEFT CORNER */
 .message-group.bot .message-content {
   flex-direction: row;
+  margin-right: auto;
+  margin-left: 0;
+
 }
 
 .message-group.bot .message-wrapper {
