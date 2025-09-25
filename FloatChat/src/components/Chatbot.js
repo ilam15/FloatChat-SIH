@@ -404,6 +404,106 @@ export const Chatbot = () => {
     }, 500);
   };
 
+  // const handleSendMessage = async () => {
+  //   if (!inputValue.trim()) return;
+
+  //   // Create the new user message
+  //   const userMessage = {
+  //     id: Date.now(),
+  //     text: inputValue,
+  //     sender: 'user',
+  //     timestamp: new Date(),
+  //   };
+
+  //   // Add the new message to the messages array
+  //   setMessages(prev => [...prev, userMessage]);
+  //   setInputValue('');
+
+  //   // Check if user needs to login (after 3 messages, i.e., userMessageCount will be 3 after adding the new message)
+  //   if (!currentUser && messages.filter(msg => msg.sender === 'user').length === 2) {
+  //     setShowLoginModal(true);
+  //     return;
+  //   }
+
+  //   // Proceed with chat history update and bot response only if user is authenticated or within message limit
+  //   if (!currentUser && messages.filter(msg => msg.sender === 'user').length >= 3) {
+  //     return; // Stop further processing if modal was shown
+  //   }
+
+  //   setIsTyping(true);
+
+  //   // Update or create chat in history
+  //   let updatedHistory = [...chatHistory];
+  //   if (currentChatId) {
+  //     updatedHistory = updatedHistory.map(chat =>
+  //       chat.id === currentChatId
+  //         ? { ...chat, messages: [...messages, userMessage], timestamp: new Date().toISOString() }
+  //         : chat
+  //     );
+  //   } else {
+  //     const newChat = {
+  //       id: Date.now(),
+  //       title: inputValue.length > 30 ? inputValue.substring(0, 30) + '...' : inputValue,
+  //       messages: [userMessage],
+  //       timestamp: new Date().toISOString(),
+  //     };
+  //     updatedHistory = [newChat, ...chatHistory];
+  //     setCurrentChatId(newChat.id);
+  //     setChatTitle(newChat.title);
+  //   }
+  //   setChatHistory(updatedHistory);
+  //   saveChatHistory(updatedHistory);
+
+  //   try {
+  //     const response = await fetch('http://localhost:5001/chat', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ message: inputValue }),
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('API error');
+  //     }
+  //     const data = await response.json();
+  //     const botMessage = {
+  //       id: Date.now() + 1,
+  //       text: data.reply || 'No response from bot.',
+  //       sender: 'bot',
+  //       timestamp: new Date(),
+  //     };
+  //     setMessages(prev => [...prev, botMessage]);
+
+  //     // Update chat history with bot response
+  //     updatedHistory = updatedHistory.map(chat =>
+  //       chat.id === (currentChatId || updatedHistory[0]?.id)
+  //         ? { ...chat, messages: [...chat.messages, botMessage], timestamp: new Date().toISOString() }
+  //         : chat
+  //     );
+  //     setChatHistory(updatedHistory);
+  //     saveChatHistory(updatedHistory);
+  //   } catch (error) {
+  //     const errorMessage = {
+  //       id: Date.now() + 2,
+  //       text: 'Error: Unable to connect to the backend API.',
+  //       sender: 'bot',
+  //       timestamp: new Date(),
+  //     };
+  //     setMessages(prev => [...prev, errorMessage]);
+
+  //     // Update chat history with error message
+  //     updatedHistory = updatedHistory.map(chat =>
+  //       chat.id === (currentChatId || updatedHistory[0]?.id)
+  //         ? { ...chat, messages: [...chat.messages, errorMessage], timestamp: new Date().toISOString() }
+  //         : chat
+  //     );
+  //     setChatHistory(updatedHistory);
+  //     saveChatHistory(updatedHistory);
+  //   } finally {
+  //     setIsTyping(false);
+  //   }
+  // };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -454,24 +554,24 @@ export const Chatbot = () => {
     setChatHistory(updatedHistory);
     saveChatHistory(updatedHistory);
 
-    try {
-      const response = await fetch('http://localhost:5000/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: inputValue }),
-      });
-      if (!response.ok) {
-        throw new Error('API error');
-      }
-      const data = await response.json();
-      const botMessage = {
-        id: Date.now() + 1,
-        text: data.reply || 'No response from bot.',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
+  try {
+    const response = await fetch('http://localhost:5001/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: inputValue }),
+    });
+    if (!response.ok) {
+      throw new Error('API error');
+    }
+    const data = await response.json();
+    const botMessage = {
+      id: Date.now() + 1,
+      text: data.response || 'No response from bot.',
+      sender: 'bot',
+      timestamp: new Date(),
+    };
       setMessages(prev => [...prev, botMessage]);
 
       // Update chat history with bot response
