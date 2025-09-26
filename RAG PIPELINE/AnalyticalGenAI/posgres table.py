@@ -7,11 +7,7 @@ from sqlalchemy import create_engine
 csv_file_path = "C:\Users\ilams\OneDrive\Desktop\Sample RAG\FloatChat-AI-main\AnalyticalGenAI\sample_gold_layer.csv"
 
 # PostgreSQL connection details
-db_user = 'postgres'
-db_password = 'sama1234'
-db_host = 'localhost'     # or remote host
-db_port = '5432'          # default PostgreSQL port
-db_name = 'SIH'
+connection_string = 'postgresql://storagesql_user:NOz3XohA7l2MlOrsSwou7Cy9QpX4mznl@dpg-d3b91d56ubrc739i3ra0-a/storagesql'
 table_name = 'sample_gold_layer'  # Target table name in PostgreSQL
 
 # === READ CSV ===
@@ -25,13 +21,11 @@ except Exception as e:
 
 # === CONNECT TO POSTGRES ===
 
-connection_string = f'postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
-
 try:
     engine = create_engine(connection_string)
     with engine.connect() as conn:
         # === WRITE TO DATABASE ===
         df.to_sql(table_name, conn, if_exists='replace', index=False)
-        print(f"Data written to table '{table_name}' in database '{db_name}'.")
+        print(f"Data written to table '{table_name}' in database 'storagesql'.")
 except Exception as e:
     print(f"Error writing to PostgreSQL: {e}")

@@ -1,85 +1,77 @@
 // dbService.js
-// Simulates database operations using localStorage as a mock database
+// Database operations using backend API
 
-// Simulate API calls with timeouts
-const simulateApiCall = (data, success = true, delay = 1000) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (success) {
-        resolve(data);
-      } else {
-        reject(new Error("Database operation failed"));
-      }
-    }, delay);
-  });
+const API_BASE_URL = 'http://localhost:5002/api'; // Adjust if backend port changes
+
+// Helper function to make API calls
+const apiCall = async (endpoint, options = {}) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('API call failed:', error);
+    throw error;
+  }
 };
 
-// Get all users from localStorage (simulating database)
+// Get all users
 export const getUsers = () => {
-  return simulateApiCall(JSON.parse(localStorage.getItem('users') || '[]'));
+  return apiCall('/users');
 };
 
 // Get user by email
 export const getUserByEmail = async (email) => {
-  const users = await getUsers();
-  return simulateApiCall(users.find(user => user.email === email));
+  const result = await apiCall('/users/search', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+  return result;
 };
 
 // Get user by ID
 export const getUserById = async (id) => {
-  const users = await getUsers();
-  return simulateApiCall(users.find(user => user.id === id));
+  return apiCall(`/users/${id}`);
 };
 
 // Create a new user
 export const createUser = async (userData) => {
-  const users = await getUsers();
-  
-  // Check if user already exists
-  const existingUser = users.find(user => user.email === userData.email);
-  if (existingUser) {
-    return simulateApiCall(null, false, 500);
-  }
-  
-  // Add new user
-  const newUser = {
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    ...userData
-  };
-  
-  users.push(newUser);
-  localStorage.setItem('users', JSON.stringify(users));
-  
-  return simulateApiCall(newUser);
+  return apiCall('/users', {
+    method: 'POST',
+    body: JSON.stringify(userData),
+  });
 };
 
 // Update user
 export const updateUser = async (id, userData) => {
-  const users = await getUsers();
-  const userIndex = users.findIndex(user => user.id === id);
-  
-  if (userIndex === -1) {
-    return simulateApiCall(null, false, 500);
-  }
-  
-  // Update user
-  users[userIndex] = {
-    ...users[userIndex],
-    ...userData,
-    updatedAt: new Date().toISOString()
-  };
-  
-  localStorage.setItem('users', JSON.stringify(users));
-  return simulateApiCall(users[userIndex]);
+  return apiCall(`/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(userData),
+  });
 };
 
 // Delete user
 export const deleteUser = async (id) => {
-  const users = await getUsers();
-  const filteredUsers = users.filter(user => user.id !== id);
-  
-  localStorage.setItem('users', JSON.stringify(filteredUsers));
-  return simulateApiCall({ success: true });
+  return apiCall(`/users/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+// Login user
+export const loginUser = async (email, password) => {
+  return apiCall('/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
 };

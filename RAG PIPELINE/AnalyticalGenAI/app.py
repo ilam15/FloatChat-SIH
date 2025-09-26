@@ -1,8 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 import os
 import json
 from dotenv import load_dotenv
+from datetime import datetime
+
+from Database.db_connection import User, Base, engine, get_db
+from sqlalchemy.orm import Session
 
 
 # --- LangChain / RAG Imports ---
@@ -22,6 +27,14 @@ from langchain_core.messages import HumanMessage
 # --- Flask App ---
 app = Flask(__name__)
 CORS(app)  # allow frontend calls
+
+# Create tables (optional - skip if DB connection fails)
+try:
+    Base.metadata.create_all(bind=engine)
+    print("[DB] Tables created successfully")
+except Exception as db_error:
+    print(f"[DB] Warning: Could not create tables - {db_error}")
+    print("[DB] Server will start without database functionality. User endpoints may fail.")
 
 # --- API KEY ---
 # Load environment variables from .env file
@@ -179,8 +192,207 @@ def run_with_agent(user_input: str):
     except Exception as e:
         return f"[ERROR] Agent Error: {e}"
 
+# ---------------- USER API ENDPOINTS ----------------
+
+@app.route("/api/users", methods=["GET"])
+def get_users():
+    db: Session = next(get_db())
+    try:
+        users = db.query(User).all()
+        return jsonify([
+            {
+                "id": user.id,
+                "email": user.email,
+                "created_at": user.created_at,
+                "updated_at": user.updated_at
+            }
+            for user in users
+        ])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+@app.route("/api/users/<int:user_id>", methods=["GET"])
+def get_user_by_id(user_id: int):
+    db: Session = next(get_db())
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            return jsonify({
+                "id": user.id,
+                "email": user.email,
+                "created_at": user.created_at,
+                "updated_at": user.updated_at
+            })
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+@app.route("/api/users/search", methods=["POST"])
+def get_user_by_email():
+    data = request.get_json()
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    db: Session = next(get_db())
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        if user:
+            return jsonify({
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "username": user.username,
+                "user_type": user.user_type,
+                "institution": user.institution,
+                "account_type": user.account_type,
+                "preferences": json.loads(user.preferences) if user.preferences else {},
+                "created_at": user.created_at,
+                "updated_at": user.updated_at
+            })
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+@app.route("/api/users", methods=["POST"])
+def create_user():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+    
+    db: Session = next(get_db())
+    try:
+        # Check if user exists
+        existing_user = db.query(User).filter(User.email == email).first()
+        if existing_user:
+            return jsonify({"error": "User already exists"}), 409
+        
+        new_user = User(
+            name=data.get("name", ""),
+            email=email,
+            password=password,
+            phone=data.get("phone", ""),
+            username=data.get("username", email.split('@')[0]),
+            user_type=data.get("userType", "general"),
+            institution=data.get("institution", ""),
+            account_type=data.get("accountType", "Basic"),
+            preferences=json.dumps(data.get("preferences", {"theme": "light", "notifications": True, "language": "english"}))
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+        return jsonify({
+            "id": new_user.id,
+            "name": new_user.name,
+            "email": new_user.email,
+            "phone": new_user.phone,
+            "username": new_user.username,
+            "user_type": new_user.user_type,
+            "institution": new_user.institution,
+            "account_type": new_user.account_type,
+            "preferences": json.loads(new_user.preferences),
+            "created_at": new_user.created_at,
+            "updated_at": new_user.updated_at
+        }), 201
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+@app.route("/api/login", methods=["POST"])
+def login_user():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+    
+    db: Session = next(get_db())
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        if user and user.password == password:
+            return jsonify({
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone,
+                "username": user.username,
+                "user_type": user.user_type,
+                "institution": user.institution,
+                "account_type": user.account_type,
+                "preferences": json.loads(user.preferences) if user.preferences else {},
+                "created_at": user.created_at,
+                "updated_at": user.updated_at
+            })
+        return jsonify({"error": "Invalid email or password"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+@app.route("/api/users/<int:user_id>", methods=["PUT"])
+def update_user(user_id: int):
+    data = request.get_json()
+    db: Session = next(get_db())
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        if "email" in data:
+            user.email = data["email"]
+        if "password" in data:
+            user.password = data["password"]
+        user.updated_at = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(user)
+        
+        return jsonify({
+            "id": user.id,
+            "email": user.email,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at
+        })
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
+@app.route("/api/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id: int):
+    db: Session = next(get_db())
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        db.delete(user)
+        db.commit()
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
+
 # ---------------- INITIALIZE VECTORSTORE ----------------
-rag_chain = build_vectorstore("dummy_ocean_data.parquet")
+rag_chain = build_vectorstore("RAG PIPELINE/dummy_ocean_data.parquet")
 
 # ---------------- API ENDPOINT ----------------
 @app.route("/api/chat", methods=["POST"])

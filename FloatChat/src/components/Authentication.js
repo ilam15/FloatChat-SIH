@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, ChevronRight, Waves, Fish, Compass, Building, GraduationCap, FlaskConical } from 'lucide-react';
 import { useAuth } from './AuthContext';
-import { createUser, getUserByEmail } from './dbService';
+import { createUser, getUserByEmail, loginUser } from './dbService';
 import './Authentication.css';
 
 export const Authentication = () => {
@@ -139,29 +139,19 @@ export const Authentication = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateSignInForm = async () => {
+  const validateSignInForm = () => {
     const newErrors = {};
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     }
-    
-    // Check if user exists for signin
-    try {
-      const existingUser = await getUserByEmail(formData.email);
-      if (!existingUser) {
-        newErrors.email = 'No account found with this email. Please sign up first.';
-      }
-    } catch (error) {
-      newErrors.submit = 'Error checking user. Please try again.';
-    }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -199,6 +189,7 @@ export const Authentication = () => {
         const userData = {
           name: formData.fullName,
           email: formData.email,
+          password: formData.password,
           phone: '', // Default empty phone
           username: formData.email.split('@')[0],
           userType: formData.role,
@@ -232,27 +223,17 @@ export const Authentication = () => {
         }, 150);
       } else {
         // Sign in existing user
-        const user = await getUserByEmail(formData.email);
-        
-        if (!user) {
-          throw new Error('User not found');
-        }
-        
-        // In a real app, you would verify the password against a hashed version
-        // For this demo, we'll just check if password is not empty
-        if (!formData.password) {
-          throw new Error('Invalid password');
-        }
-        
+        const user = await loginUser(formData.email, formData.password);
+
         // Save current user to localStorage for auth persistence
         localStorage.setItem('currentUser', JSON.stringify(user));
-        
+
         // Call the login function from context to update global state
         login(user);
-        
+
         // Set success message instead of alert
         setSuccessMessage('Successfully signed in!');
-        
+
         // Redirect after a short delay
         setTimeout(() => {
           window.location.href = '/';
