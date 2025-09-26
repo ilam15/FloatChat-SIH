@@ -455,7 +455,8 @@
   max-width: 800px;
   width: 100%;
   gap: 16px;
-  margin: 0 auto;
+   margin-right: auto;
+  margin-left: 0;
 }
 
 .typing-content {
